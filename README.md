@@ -28,20 +28,21 @@ git pull origin main
 git checkout -b feature/nom-feature
 ```
 2. Convention de Nommage des Branches
-Nouvelle fonctionnalité : feature/nom-feature
-Correction de bug : fix/nom-bug
-Documentation : docs/sujet
-Refactoring : refactor/sujet
+- Nouvelle fonctionnalité : feature/nom-feature
+- Correction de bug : fix/nom-bug
+- Documentation : docs/sujet
+- Refactoring : refactor/sujet
+etc. 
 
 3. Messages de Commit
 ```bash
 Format : <type>(<scope>): <description>
 ```
 Exemples :
-feat(onboarding): implement login page
-fix(auth): resolve validation error
-style(ui): update button design
-docs(readme): add deployment guide
+- feat(onboarding): implement login page
+- fix(auth): resolve validation error
+- style(ui): update button design
+- docs(readme): add deployment guide
 
 # 📁 Structure du Projet
 Le frontend dev ajouteras 
@@ -56,3 +57,8 @@ npm run test     # Tests
 ```
 
 ## 🌍 Configuration Environnement
+
+to be completed by the frontend dev
+
+# To Note 
+ view progress : https://lebaincodefront-d2j7aye5k-jayzhehs-projects.vercel.app/ 

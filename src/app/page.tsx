@@ -20,7 +20,7 @@ export default function Home() {
               placeholder="Email address"
               className="w-[240px] px-3 py-2 bg-gray-800 rounded text-sm border border-gray-700 focus:outline-none focus:border-gray-600"
             />
-            <button className="bg-[#8B5CF6] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap">
+            <button className="bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap">
               Sign in through GitHub
             </button>
             <button className="bg-gray-800 px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap">

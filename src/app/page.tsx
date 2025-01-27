@@ -3,9 +3,12 @@ import Rules from "./components/Rules"
 import AddOns from "./components/AddOns"
 import Pricing from "./components/Pricing"
 import FAQ from "./components/FAQ"
+import Contact from "./components/Contact"
+import Footer from "./components/Footer"
 
 export default function Home() {
   return (
+    <>
     <main className="min-h-screen bg-[#111827]">
       <Navbar />
       <div className="container mx-auto px-6 pt-32">
@@ -50,6 +53,12 @@ export default function Home() {
       <div className="container mx-auto px-6 mt-32 mb-20 flex justify-center">
         <FAQ />
       </div>
+
+      <div className="container mx-auto px-6 mt-32 pb-32 flex justify-center">
+        <Contact />
+      </div>
     </main>
+    <Footer />
+    </>
   )
 }

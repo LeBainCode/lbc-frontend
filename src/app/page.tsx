@@ -1,5 +1,6 @@
 import Navbar from "./components/Navbar"
 import Rules from "./components/Rules"
+import AddOns from "./components/AddOns"
 
 export default function Home() {
   return (
@@ -34,6 +35,10 @@ export default function Home() {
   
       <div className="container mx-auto px-6 mt-32 flex justify-center">
         <Rules />
+      </div>
+
+      <div className="container mx-auto px-6 mt-32 mb-20 flex justify-center">
+        <AddOns />
       </div>
     </main>
   )

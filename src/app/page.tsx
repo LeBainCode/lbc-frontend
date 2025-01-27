@@ -1,4 +1,5 @@
 import Navbar from "./components/Navbar"
+import Rules from "./components/Rules"
 
 export default function Home() {
   return (
@@ -29,6 +30,10 @@ export default function Home() {
             </button>
           </div>
         </div>
+      </div>
+  
+      <div className="container mx-auto px-6 mt-32 flex justify-center">
+        <Rules />
       </div>
     </main>
   )

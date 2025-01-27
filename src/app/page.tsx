@@ -2,6 +2,7 @@ import Navbar from "./components/Navbar"
 import Rules from "./components/Rules"
 import AddOns from "./components/AddOns"
 import Pricing from "./components/Pricing"
+import FAQ from "./components/FAQ"
 
 export default function Home() {
   return (
@@ -46,6 +47,9 @@ export default function Home() {
         <Pricing />
       </div>
 
+      <div className="container mx-auto px-6 mt-32 mb-20 flex justify-center">
+        <FAQ />
+      </div>
     </main>
   )
 }

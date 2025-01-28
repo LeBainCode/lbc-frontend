@@ -15,7 +15,7 @@ export default function Pricing() {
             <span className="text-white text-4xl font-medium">0</span>
             <span className="text-gray-400 ml-2">per month</span>
           </div>
-          <button className="w-full border-2 border-[#252525] text-[#252525] py-2.5 rounded text-sm mb-8">
+          <button className="w-full border-2 border-[#252525] text-[#252525] py-2.5 rounded text-sm font-bold mb-8">
             Join for free
           </button>
           <div className="space-y-4 text-sm">
@@ -52,7 +52,7 @@ export default function Pricing() {
             <span className="text-white text-4xl font-medium">3.67</span>
             <span className="text-gray-400 ml-2">per month</span>
           </div>
-          <button className="w-full bg-[#252525] text-[#e6e6e6] py-2.5 rounded text-sm mb-8">
+          <button className="w-full bg-[#252525] text-[#e6e6e6] py-2.5 rounded text-bold mb-8">
             Continue with Team
           </button>
           <div className="space-y-4 text-sm">
@@ -79,10 +79,10 @@ export default function Pricing() {
             <span className="text-gray-400 ml-2">per month</span>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-8">
-            <button className="bg-[#252525] text-[#e6e6e6] py-2.5 rounded text-sm">
+            <button className="bg-[#252525] text-[#e6e6e6] py-2.5 rounded text-bold">
               Start a free trial
             </button>
-            <button className="border-2 border-[#252525] text-[#252525] py-2.5 rounded text-sm">
+            <button className="border-2 border-[#252525] text-[#252525] py-2.5 rounded text-bold">
               Contact Sales
             </button>
           </div>

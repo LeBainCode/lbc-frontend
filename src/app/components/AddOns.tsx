@@ -13,7 +13,7 @@ export default function AddOns() {
           <p className="text-[#57606A] text-sm mb-4">
             Starting at $15/month after a 60 day trial
           </p>
-          <button className="text-[#24292F] text-sm hover:text-white flex items-center">
+          <button className="text-[#24292F] text-sm hover:text-white flex items-center mt-auto">
             Compare plans
             <span className="ml-1">→</span>
           </button>
@@ -28,7 +28,7 @@ export default function AddOns() {
           <p className="text-[#57606A] text-sm mb-4">
             Starting at $5.19 per hour of compute and $0.17 per GB of storage
           </p>
-          <button className="text-[#24292F] text-sm hover:text-white flex items-center">
+          <button className="text-[#24292F] text-sm hover:text-white flex items-center mt-auto">
             Learn more
             <span className="ml-1">→</span>
           </button>
@@ -43,7 +43,7 @@ export default function AddOns() {
           <p className="text-[#57606A] text-sm mb-4">
             $5 per month for 50 GB bandwidth and 50 GB of storage
           </p>
-          <button className="text-[#24292F] text-sm hover:text-white flex items-center">
+          <button className="text-[#24292F] text-sm hover:text-white flex items-center mt-auto">
             Learn more
             <span className="ml-1">→</span>
           </button>
@@ -63,7 +63,7 @@ export default function AddOns() {
           <p className="text-[#57606A] text-sm mb-4">
             $49 per month per active committer
           </p>
-          <button className="text-[#24292F] text-sm hover:text-white flex items-center">
+          <button className="text-[#24292F] text-sm hover:text-white flex items-center mt-auto">
             Learn more
             <span className="ml-1">→</span>
           </button>

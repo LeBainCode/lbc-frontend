@@ -14,10 +14,10 @@ export default function Navbar() {
         <Link href="/" className="text-#e6e6e6 hover:text-white text-sm">
           Home
         </Link>
-        <Link href="/rules" className="text-#e6e6e6 hover:text-white text-sm">
+        <Link href="#rules" className="text-#e6e6e6 hover:text-white text-sm">
           Rules
         </Link>
-        <Link href="/contact" className="text-#e6e6e6 hover:text-white text-sm">
+        <Link href="#contact" className="text-#e6e6e6 hover:text-white text-sm">
           Contact
         </Link>
       </div>

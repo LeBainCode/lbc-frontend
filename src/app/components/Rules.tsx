@@ -42,7 +42,7 @@ export default function Rules() {
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl" id="rules">
       <h2 className="text-2xl font-bold text-white mb-4">Regles</h2>
       <p className="text-#e6e6e6 text-base mb-8">
         This is a paragraph with more information about something important.

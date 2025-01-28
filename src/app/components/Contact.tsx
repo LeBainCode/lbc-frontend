@@ -2,7 +2,7 @@ export default function Contact() {
   const email = "your.email@example.com"; // Replace
 
   return (
-    <div className="max-w-6xl mx-auto text-center" id="contact">
+    <div className="max-w-6xl mx-auto text-center">
       <div className="flex justify-center mb-6">
         <a href={`mailto:${email}`}>
           <div className="w-12 h-12 bg-[#84cc16] rounded-lg flex items-center justify-center cursor-pointer hover:rotate-45 transition-transform duration-300">

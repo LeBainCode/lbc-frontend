@@ -11,7 +11,7 @@ export default function Home() {
     <>
       <main className="min-h-screen bg-[#0D1117]">
         <Navbar />
-        <div className="container mx-auto px-6 pt-32">
+        <div className="container mx-auto px-6 pt-32" id="/">
           <div className="max-w-2xl">
             <h1 className="text-6xl font-bold text-white mb-6">Le Bain Code</h1>
             <p className="text-gray-400 text-base mb-8 max-w-md leading-relaxed">
@@ -38,7 +38,10 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="container mx-auto px-6 mt-32 flex justify-center">
+        <div
+          className="container mx-auto px-6 mt-32 flex justify-center"
+          id="rules"
+        >
           <Rules />
         </div>
 
@@ -54,7 +57,10 @@ export default function Home() {
           <FAQ />
         </div>
 
-        <div className="container mx-auto px-6 mt-32 pb-32 flex justify-center">
+        <div
+          className="container mx-auto px-6 mt-32 pb-32 flex justify-center"
+          id="contact"
+        >
           <Contact />
         </div>
       </main>

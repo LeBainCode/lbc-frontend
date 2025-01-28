@@ -42,7 +42,7 @@ export default function Rules() {
   };
 
   return (
-    <div className="max-w-2xl" id="rules">
+    <div className="max-w-2xl">
       <h2 className="text-2xl font-bold text-white mb-4">Regles</h2>
       <p className="text-#e6e6e6 text-base mb-8">
         This is a paragraph with more information about something important.
@@ -70,7 +70,7 @@ export default function Rules() {
         {rules[currentPage].map((rule) => (
           <div
             key={rule.id}
-            className="bg-[#e6e6e6] p-4 rounded-lg cursor-pointer hover:bg-[#7C3AED] transition-colors"
+            className="bg-[#e6e6e6] p-4 rounded-lg cursor-pointer"
           >
             <div className="flex items-center">
               <span className="text-gray-400 mr-2">{rule.id}</span>

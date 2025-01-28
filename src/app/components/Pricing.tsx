@@ -12,7 +12,7 @@ export default function Pricing() {
           </p>
           <div className="flex items-baseline justify-center mb-6">
             <span className="text-gray-400 text-lg">$</span>
-            <span className="text-white text-4xl font-medium">0</span>
+            <span className="text-[#252525] text-4xl font-medium">0</span>
             <span className="text-gray-400 ml-2">per month</span>
           </div>
           <button className="w-full border-2 border-[#252525] text-[#252525] py-2.5 rounded text-sm font-bold mb-8">
@@ -35,26 +35,31 @@ export default function Pricing() {
         </div>
 
         {/* Premium Plan */}
-        <div className="relative bg-[#e6e6e6] rounded-lg p-8">
+        <div className="relative bg-[#e6e6e6] rounded-lg p-8 ">
           <div className="absolute -top-3 left-0 right-0 flex justify-center">
-            <div className="bg-[#84cc16] text-[11px] font-medium px-3 py-1 rounded-full uppercase tracking-wider">
+            <div className="bg-[#84cc16] text-[11px] font-medium px-3 py-1 rounded uppercase tracking-wider">
               Most Popular
             </div>
           </div>
+
           <h3 className="text-center text-[#252525] text-xl font-medium mb-2">
             Premium
           </h3>
+
           <p className="text-center text-gray-400 text-sm mb-6">
             Enhanced features for individuals and organizations
           </p>
+
           <div className="flex items-baseline justify-center mb-6">
             <span className="text-gray-400 text-lg">$</span>
-            <span className="text-white text-4xl font-medium">3.67</span>
+            <span className="text-[#252525] text-4xl font-medium">3.67</span>
             <span className="text-gray-400 ml-2">per month</span>
           </div>
+
           <button className="w-full bg-[#252525] text-[#e6e6e6] py-2.5 rounded text-bold mb-8">
             Continue with Team
           </button>
+
           <div className="space-y-4 text-sm">
             <div className="flex gap-3">
               <span className="text-gray-400">✓</span>
@@ -66,7 +71,7 @@ export default function Pricing() {
         </div>
 
         {/* Enterprise Plan */}
-        <div className="bg-[#e6e6e6] rounded-lg p-8">
+        <div className="bg-[#e6e6e6] rounded-lg py-8 px-8">
           <h3 className="text-center text-[#252525] text-xl font-medium mb-2">
             Enterprise
           </h3>
@@ -75,7 +80,7 @@ export default function Pricing() {
           </p>
           <div className="flex items-baseline justify-center mb-6">
             <span className="text-gray-400 text-lg">$</span>
-            <span className="text-white text-4xl font-medium">19.25</span>
+            <span className="text-[#252525] text-4xl font-medium">19.25</span>
             <span className="text-gray-400 ml-2">per month</span>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-8">

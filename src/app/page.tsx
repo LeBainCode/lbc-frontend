@@ -1,3 +1,4 @@
+// src/app/page.tsx
 import Navbar from "./components/Navbar";
 import Rules from "./components/Rules";
 import AddOns from "./components/AddOns";

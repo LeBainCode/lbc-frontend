@@ -1,60 +1,90 @@
 // components/LoginModal.tsx
-"use client"
+'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../context/AuthContext';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+interface LoginModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
-export default function LoginModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  const [credentials, setCredentials] = useState({ username: '', password: '' })
-  const router = useRouter()
+export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
+  const router = useRouter();
+  const { setUser } = useAuth();
+  const [credentials, setCredentials] = useState({
+    username: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
+
+  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials)
-      })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
 
-      const data = await res.json()
-      if (res.ok) {
-        localStorage.setItem('token', data.token)
-        router.push('/dashboard')
-        onClose()
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        setUser(data.user);
+        onClose(); // Close the modal
+        router.push('/dashboard'); // Redirect to dashboard
+      } else {
+        setError('Invalid credentials');
       }
-    } catch (error) {
-      console.error('Login failed:', error)
+    } catch (err) {
+      setError('Login failed');
     }
-  }
+  };
 
-  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-[#1F2937] rounded-lg p-8 w-[400px]">
+      <div className="bg-[#1F2937] p-8 rounded-lg w-96">
         <h2 className="text-2xl font-bold text-white mb-6">Organization Login</h2>
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Username"
-            className="w-full mb-4 px-3 py-2 bg-gray-800 rounded text-white"
-            onChange={e => setCredentials({ ...credentials, username: e.target.value })}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full mb-6 px-3 py-2 bg-gray-800 rounded text-white"
-            onChange={e => setCredentials({ ...credentials, password: e.target.value })}
-          />
-          <button 
-            type="submit"
-            className="w-full bg-[#BF9ACA] text-white py-2 rounded hover:bg-opacity-90"
-          >
-            Login
-          </button>
+          <div className="space-y-4">
+            <input
+              type="text"
+              placeholder="Username"
+              className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:outline-none focus:border-[#BF9ACA]"
+              value={credentials.username}
+              onChange={(e) => setCredentials({...credentials, username: e.target.value})}
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:outline-none focus:border-[#BF9ACA]"
+              value={credentials.password}
+              onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+            />
+          </div>
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          <div className="mt-6 flex gap-3">
+            <button
+              type="submit"
+              className="bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors flex-1"
+            >
+              Login
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="border border-gray-600 px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex-1"
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </div>
     </div>
-  )
+  );
 }

@@ -1,4 +1,7 @@
 // src/app/page.tsx
+'use client';
+
+import { useState } from 'react';
 import Navbar from "./components/Navbar";
 import Rules from "./components/Rules";
 import AddOns from "./components/AddOns";
@@ -6,8 +9,10 @@ import Pricing from "./components/Pricing";
 import FAQ from "./components/FAQ";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
+import LoginModal from "./components/LoginModal";
 
 export default function Home() {
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   return (
     <>
       <main className="min-h-screen bg-[#0D1117]">
@@ -31,7 +36,10 @@ export default function Home() {
                   Sign in through GitHub
                 </button>
               </div>
-              <button className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap">
+              <button 
+                onClick={() => setIsLoginModalOpen(true)}
+                className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+              >
                 Organization Login
                 <span className="text-gray-400">→</span>
               </button>
@@ -66,6 +74,10 @@ export default function Home() {
         </div>
       </main>
       <Footer />
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+      />
     </>
   );
 }

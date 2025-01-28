@@ -23,7 +23,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('https://lebaincode-backend.onrender.com/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,13 +35,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
         setUser(data.user);
-        onClose(); // Close the modal
-        router.push('/dashboard'); // Redirect to dashboard
+        onClose(); 
+        router.push('/dashboard'); 
       } else {
-        setError('Invalid credentials');
+        const errorData = await response.json();
+        setError(errorData.message || 'Invalid credentials');
       }
     } catch (err) {
-      setError('Login failed');
+      console.error('Login error:', err);
+      setError('Login failed. Please try again or contact us.');
     }
   };
 

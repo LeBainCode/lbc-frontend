@@ -2,7 +2,7 @@
 'use client'
 import { useAuth } from '../context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react'; 
+import { useEffect, useState } from 'react'; 
 import Navbar from "../components/Navbar"
 import Footer from "../components/Footer"
 import Link from "next/link"
@@ -13,37 +13,68 @@ export default function Dashboard() {
     const { user, fetchUserData } = useAuth(); 
     const router = useRouter();
     const searchParams = useSearchParams();
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const token = searchParams.get('token');
-        console.log('Token from URL:', token); 
+      const handleAuthentication = async () => {
+          try {
+              const token = searchParams.get('token');
+              console.log('Token from URL:', token);
 
-        if (token) {
-            console.log('Token found, saving to localStorage...');
-            localStorage.setItem('token', token);
-            fetchUserData()
-                .then(() => {
-                    console.log('User data fetched successfully.');
-                    // Clean up URL
-                    router.replace('/dashboard');
-                })
-                .catch((error) => {
-                    console.error('Error fetching user data:', error);
-                    // Handle error (e.g., redirect to login or show an error message)
-                    router.push('/');
-                });
-        } else if (!user) {
-            console.log('No token found and user is not logged in, redirecting to home...');
-            router.push('/');
-        }
-    }, [searchParams, user, router, fetchUserData]);
+              if (token) {
+                  // Save token and clean up URL before fetching user data
+                  localStorage.setItem('token', token);
+                  console.log('Token saved to localStorage');
 
-    // Lloading state 
-    if (!user) {
-        return <div className="min-h-screen bg-[#111827] flex items-center justify-center">
-            <p className="text-white">Loading...</p>
-        </div>;
-    }
+                  // Clean up URL by removing token
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete('token');
+                  window.history.replaceState({}, document.title, url.toString());
+                  console.log('URL cleaned up');
+
+                  // Fetch user data with the new token
+                  await fetchUserData();
+                  console.log('User data fetched successfully');
+              } else {
+                  // Check if we have a token in localStorage
+                  const storedToken = localStorage.getItem('token');
+                  if (!storedToken) {
+                      console.log('No token found, redirecting to home');
+                      router.push('/');
+                      return;
+                  }
+                  // If we have a stored token but no user data, try to fetch it
+                  if (!user) {
+                      await fetchUserData();
+                  }
+              }
+          } catch (error) {
+              console.error('Authentication error:', error);
+              localStorage.removeItem('token'); // Clear invalid token
+              router.push('/');
+              return;
+          } finally {
+              setIsLoading(false);
+          }
+      };
+
+      handleAuthentication();
+  }, [searchParams, router, fetchUserData]); 
+
+    // Show loading state while authenticating
+    if (isLoading) {
+      return (
+          <div className="min-h-screen bg-[#111827] flex items-center justify-center">
+              <p className="text-white">Loading...</p>
+          </div>
+      );
+  }
+
+  // If no user after loading, redirect to home
+  if (!user) {
+      router.push('/');
+      return null;
+  }
 
     // Safe access to user properties
     const stats = {

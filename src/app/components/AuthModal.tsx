@@ -18,7 +18,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       console.log('GitHub authentication initiated.');
       setIsLoading(true);
       // Redirect to backend GitHub auth route
-      window.location.href = 'https://lebaincode-backend.onrender.com/api/auth/github';
+      window.location.href =
+        process.env.NODE_ENV === 'production'
+          ? 'https://lebaincode-backend.onrender.com/api/auth/github'
+          : 'http://localhost:5000/api/auth/github';
     } catch (error) {
       console.error('GitHub auth error:', error);
       setIsLoading(false);

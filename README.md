@@ -36,13 +36,39 @@ etc.
 
 3. Messages de Commit
 ```bash
-Format : <type>(<scope>): <description>
+Format : be descriptive 
 ```
 Exemples :
-- feat(onboarding): implement login page
-- fix(auth): resolve validation error
-- style(ui): update button design
-- docs(readme): add deployment guide
+- loading state added to sign in 
+- footer color modified + subscription button added (not func)
+
+## 🔐 Authentication with GitHub
+
+### Development Setup
+1. Get the GitHub OAuth credentials from the project maintainer:
+   - `GITHUB_CLIENT_ID`
+   - `GITHUB_CLIENT_SECRET`
+   
+   Note: You don't need to create a new GitHub OAuth app - we use the project's existing one.
+
+### Local Development
+1. Start the backend server on port 5000
+2. Start the frontend:
+```bash
+npm run dev
+```
+1. Visit http://localhost:3000
+2. Click "Sign in with GitHub"
+3. Authorize the application
+
+Authentication Flow
+User clicks "Sign in with GitHub"
+GitHub OAuth redirects to backend
+Backend creates/updates user and generates JWT
+User is redirected to dashboard with token
+Frontend stores token and fetches user data
+
+Note: Ensure both frontend and backend are running for authentication to work.
 
 # 📁 Structure du Projet
 Le frontend dev ajouteras 

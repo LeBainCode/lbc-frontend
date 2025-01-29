@@ -21,7 +21,7 @@ export default function Footer() {
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6 text-xs text-gray-500">
-              <span>© 2023 GitHub, Inc.</span>
+              <span>© 2025 Le Bain Code, Inc.</span>
               <a href="#" className="hover:text-gray-400">
                 Terms
               </a>

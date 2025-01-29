@@ -28,22 +28,23 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(credentials),
       });
-
+  
+      const data = await response.json();
+      
       if (response.ok) {
-        const data = await response.json();
         localStorage.setItem('token', data.token);
         setUser(data.user);
-        onClose(); 
-        router.push('/dashboard'); 
+        onClose();
+        router.push('/dashboard');
       } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Invalid credentials');
+        setError(data.message || 'Invalid credentials');
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError('Login failed. Please try again or contact us.');
+      setError('Login failed. Please try again.');
     }
   };
 

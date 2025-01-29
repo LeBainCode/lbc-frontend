@@ -2,19 +2,29 @@
 'use client';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthContextType, User } from '../types/auth';
+import { useSearchParams } from 'next/navigation';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const searchParams = useSearchParams();
 
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetchUserData(); 
+    // Check for token in URL params (from GitHub callback)
+    const tokenFromUrl = searchParams.get('token');
+    if (tokenFromUrl) {
+      localStorage.setItem('token', tokenFromUrl);
+      fetchUserData();
+    } else {
+      // Check localStorage as fallback
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        fetchUserData();
+      }
     }
-  }, []);
+  }, [searchParams]);
 
   const fetchUserData = async () => {
     try {
@@ -24,11 +34,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
   
-      const response = await fetch('http://localhost:5000/api/user/profile', {
+      const response = await fetch('https://lebaincode-backend.onrender.com/api/user/profile', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include'
       });
   
       if (response.ok) {
@@ -45,8 +56,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchUserData();
+    }
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={{ user, setUser, fetchUserData }}>
       {children}
     </AuthContext.Provider>
   );

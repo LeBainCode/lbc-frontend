@@ -1,7 +1,8 @@
+// src/app/dashboard/page.tsx
 'use client'
 import { useAuth } from '../context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react'; // Add this import
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react'; 
 import Navbar from "../components/Navbar"
 import Footer from "../components/Footer"
 import Link from "next/link"
@@ -9,17 +10,23 @@ import Stats from "../components/Stats"
 import Modules from "../components/Modules"
 
 export default function Dashboard() {
-    const { user } = useAuth(); 
+    const { user, fetchUserData } = useAuth(); 
     const router = useRouter();
+    const searchParams = useSearchParams();
 
-    // Use useEffect for navigation
     useEffect(() => {
-        if (!user) {
-            router.push('/');
+        const token = searchParams.get('token');
+        if (token) {
+          localStorage.setItem('token', token);
+          fetchUserData();
+          // Clean up URL
+          router.replace('/dashboard');
+        } else if (!user) {
+          router.push('/');
         }
-    }, [user, router]);
+      }, [searchParams, user, router, fetchUserData]);
 
-    // Show loading state while checking authentication
+    // Lloading state 
     if (!user) {
         return <div className="min-h-screen bg-[#111827] flex items-center justify-center">
             <p className="text-white">Loading...</p>

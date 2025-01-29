@@ -1,3 +1,4 @@
+// src/app/services/auth.ts
 const API_URL = 'http://localhost:5000/api/auth';
 
 export const authService = {

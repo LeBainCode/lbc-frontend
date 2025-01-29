@@ -13,9 +13,11 @@ export default function Navbar() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
   const handleSignOut = () => {
+    console.log('Signing out...');
     localStorage.removeItem('token')
     setUser(null)
     router.push('/')
+    console.log('User signed out and redirected to home.');
   }
 
   return (

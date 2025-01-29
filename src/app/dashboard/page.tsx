@@ -16,15 +16,27 @@ export default function Dashboard() {
 
     useEffect(() => {
         const token = searchParams.get('token');
+        console.log('Token from URL:', token); 
+
         if (token) {
-          localStorage.setItem('token', token);
-          fetchUserData();
-          // Clean up URL
-          router.replace('/dashboard');
+            console.log('Token found, saving to localStorage...');
+            localStorage.setItem('token', token);
+            fetchUserData()
+                .then(() => {
+                    console.log('User data fetched successfully.');
+                    // Clean up URL
+                    router.replace('/dashboard');
+                })
+                .catch((error) => {
+                    console.error('Error fetching user data:', error);
+                    // Handle error (e.g., redirect to login or show an error message)
+                    router.push('/');
+                });
         } else if (!user) {
-          router.push('/');
+            console.log('No token found and user is not logged in, redirecting to home...');
+            router.push('/');
         }
-      }, [searchParams, user, router, fetchUserData]);
+    }, [searchParams, user, router, fetchUserData]);
 
     // Lloading state 
     if (!user) {

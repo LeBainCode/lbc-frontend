@@ -27,34 +27,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [searchParams]);
 
   const fetchUserData = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setUser(null);
+    const token = localStorage.getItem('token');
+    console.log('Token for fetching user data:', token); // Log the token
+
+    if (!token) {
+        console.error('No token found, unable to fetch user data.');
         return;
-      }
+    }
   
-      const response = await fetch('https://lebaincode-backend.onrender.com/api/user/profile', {
-        headers: {
+    const response = await fetch('https://lebaincode-backend.onrender.com/api/user/profile', {
+      headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
+      }
+  });
+
   
       if (response.ok) {
         const userData = await response.json();
+        console.log('User data fetched successfully:', userData); // Log the user data
         setUser(userData);
-      } else {
+    } else {
+        console.error('Failed to fetch user data:', response.status, response.statusText); // Log error
         setUser(null);
-        localStorage.removeItem('token');
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      setUser(null);
-      localStorage.removeItem('token');
+        localStorage.removeItem('token'); // Clear token if fetch fails
     }
-  };
+    };
 
   useEffect(() => {
     const token = localStorage.getItem('token');

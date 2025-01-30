@@ -8,6 +8,7 @@ import Footer from "../components/Footer"
 import Link from "next/link"
 import Stats from "../components/Stats"
 import Modules from "../components/Modules"
+import AdminPanel from '../components/AdminPanel';
 
 export default function Dashboard() {
     const { user, fetchUserData } = useAuth(); 
@@ -112,6 +113,7 @@ export default function Dashboard() {
                     <div className="mt-12">
                         <Modules />
                     </div>
+                    <AdminPanel />
                 </div>
             </main>
             <Footer />

@@ -13,10 +13,12 @@ export interface UserProgress {
   };
 }
 
-// User interface with all properties
+// User interface 
 export interface User {
   _id: string;
   username: string;
+  email?: string;  // Add this line
+  githubId?: string;  // Add this line if needed
   role: 'user' | 'admin';  
   progress: UserProgress;  
 }
@@ -24,7 +26,7 @@ export interface User {
 // AuthContextType 
 export interface AuthContextType {
   user: User | null;
-  setUser: (user: User | null) => void;
-  fetchUserData: () => Promise<User>; 
-  isLoading: boolean;  
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  fetchUserData: () => Promise<User>;
+  isLoading: boolean;
 }

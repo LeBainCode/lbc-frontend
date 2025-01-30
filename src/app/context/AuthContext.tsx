@@ -4,7 +4,14 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { AuthContextType, User } from '../types/auth';
 import { useSearchParams } from 'next/navigation';
 
-export const AuthContext = createContext<AuthContextType | null>(null);
+export const AuthContext = createContext<AuthContextType>({
+  user: null,
+  setUser: () => {},
+  fetchUserData: async () => {
+    throw new Error('fetchUserData not implemented');
+  },
+  isLoading: true
+});
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -34,9 +41,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const userData = await response.json();
-      console.log('User data fetched successfully:', userData);
-      setUser(userData);
-      return userData;
+      // Transform the data to match our User type if needed
+      const transformedUser: User = {
+        _id: userData._id,
+        username: userData.username,
+        email: userData.email,
+        role: userData.role,
+        githubId: userData.githubId,
+        progress: userData.progress
+      };
+
+      setUser(transformedUser);
+      return transformedUser;
     } catch (error) {
       console.error('Error fetching user data:', error);
       setUser(null);
@@ -50,19 +66,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleAuthentication = async () => {
       try {
-        // Check for token in URL params (from GitHub callback)
         const tokenFromUrl = searchParams.get('token');
+        console.log('Token from URL:', tokenFromUrl);
+        
         if (tokenFromUrl) {
-          console.log('Token found in URL, saving to localStorage');
+          console.log('Token saved to localStorage');
           localStorage.setItem('token', tokenFromUrl);
           await fetchUserData();
         } else {
-          // Check localStorage as fallback
           const storedToken = localStorage.getItem('token');
           if (storedToken) {
             console.log('Token found in localStorage, fetching user data');
             await fetchUserData();
           } else {
+            console.log('No token found, redirecting to home');
             setIsLoading(false);
           }
         }
@@ -75,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     handleAuthentication();
   }, [searchParams]);
 
-  const value = {
+  const value: AuthContextType = {
     user,
     setUser,
     fetchUserData,

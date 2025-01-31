@@ -9,6 +9,7 @@ import Link from "next/link"
 import Stats from "../components/Stats"
 import Modules from "../components/Modules"
 import AdminPanel from '../components/AdminPanel';
+import AlertPopup from '../components/AlertPopup';
 
 export default function Dashboard() {
     const { user, fetchUserData } = useAuth(); 
@@ -115,6 +116,7 @@ export default function Dashboard() {
                     </div>
                     <AdminPanel />
                 </div>
+                <AlertPopup hasEmail={Boolean(user?.email)} />
             </main>
             <Footer />
         </>

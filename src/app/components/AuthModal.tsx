@@ -1,37 +1,45 @@
 // components/AuthModal.tsx
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const getApiUrl = async () => {
-  try {
-    const healthCheck = await fetch('http://localhost:5000/api/health');
-    if (healthCheck.ok) {
-      return 'http://localhost:5000';
-    }
-  } catch {
-    console.log('Local backend not available, using Render backend');
+const getApiUrl = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://lebaincode-backend.onrender.com';
   }
-  return 'https://lebaincode-backend.onrender.com';
+  return 'http://localhost:5000';
 };
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
-    
-  if (!isOpen) return null;
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleGitHubAuth = async () => {
+  // Handle ESC key press
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+
+  // Handle clicking outside modal
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  const handleGitHubAuth = () => {
     try {
-      console.log('GitHub authentication initiated.');
       setIsLoading(true);
-      
-      const apiUrl = await getApiUrl();
-      console.log('Current API URL:', apiUrl);
-      
+      const apiUrl = getApiUrl();
+      console.log('Initiating GitHub auth with:', apiUrl);
       window.location.href = `${apiUrl}/api/auth/github`;
     } catch (error) {
       console.error('GitHub auth error:', error);
@@ -39,25 +47,47 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-[#1F2937] p-8 rounded-lg w-96">
-        <h2 className="text-2xl font-bold text-white mb-6">Sign in</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-white">Sign in</h2>
+          <button 
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+            aria-label="Close modal"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
         <button
           onClick={handleGitHubAuth}
           disabled={isLoading}
-          className="w-full flex items-center justify-center space-x-2 bg-[#24292f] text-white px-4 py-3 rounded-md hover:bg-[#2c974b] transition-colors"
+          className="w-full flex items-center justify-center space-x-2 bg-[#24292f] text-white px-4 py-3 rounded-md hover:bg-[#2c974b] transition-colors mb-4"
         >
           {isLoading ? (
             <span className="animate-spin">⌛</span>
           ) : (
             <>
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
               </svg>
               <span>Continue with GitHub</span>
             </>
           )}
+        </button>
+        <button
+          onClick={onClose}
+          className="w-full px-4 py-3 text-gray-400 hover:text-white transition-colors rounded-md border border-gray-600 hover:border-gray-400"
+        >
+          Cancel
         </button>
       </div>
     </div>

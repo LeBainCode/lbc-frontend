@@ -27,6 +27,6 @@ export interface User {
 export interface AuthContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  fetchUserData: () => Promise<User>;
+  fetchUserData: () => Promise<User | null>;
   isLoading: boolean;
 }

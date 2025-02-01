@@ -3,36 +3,52 @@ class WebSocketService {
     private socket: WebSocket | null = null;
     private listeners: Map<string, Set<(data: any) => void>> = new Map();
 
-    connect() {
-        const baseUrl = window.location.hostname === 'localhost' 
-            ? 'ws://localhost:5000'
-            : 'wss://lebaincode-backend.onrender.com';
+    async connect() {
+        try {
+            const apiUrl = await this.getApiUrl();
+            const wsUrl = apiUrl.replace('http', 'ws').replace('https', 'wss');
+            
+            this.socket = new WebSocket(wsUrl);
+            
+            this.socket.onopen = () => {
+                console.log('WebSocket connected');
+            };
 
-        this.socket = new WebSocket(baseUrl);
+            this.socket.onmessage = (event) => {
+                try {
+                    const { type, data } = JSON.parse(event.data);
+                    this.notifyListeners(type, data);
+                } catch (error) {
+                    console.error('WebSocket message error:', error);
+                }
+            };
 
-        this.socket.onopen = () => {
-            console.log('WebSocket connected');
-        };
+            this.socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
 
-        this.socket.onmessage = (event) => {
-            try {
-                const { type, data } = JSON.parse(event.data);
-                this.notifyListeners(type, data);
-            } catch (error) {
-                console.error('WebSocket message error:', error);
-            }
-        };
-
-        this.socket.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-
-        this.socket.onclose = () => {
-            console.log('WebSocket disconnected');
-            // Attempt to reconnect after 5 seconds
+            this.socket.onclose = () => {
+                console.log('WebSocket disconnected');
+                setTimeout(() => this.connect(), 5000);
+            };
+        } catch (error) {
+            console.error('WebSocket connection error:', error);
             setTimeout(() => this.connect(), 5000);
-        };
+        }
     }
+
+    private async getApiUrl() {
+        try {
+            const healthCheck = await fetch('http://localhost:5000/api/health');
+            if (healthCheck.ok) {
+                return 'http://localhost:5000';
+            }
+        } catch {
+            console.log('Local backend not available, using Render backend');
+        }
+        return 'https://lebaincode-backend.onrender.com';
+    }
+
 
     subscribe(type: string, callback: (data: any) => void) {
         if (!this.listeners.has(type)) {

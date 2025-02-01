@@ -4,6 +4,18 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { AuthContextType, User } from '../types/auth';
 import { useSearchParams } from 'next/navigation';
 
+const getApiUrl = async () => {
+  try {
+    const healthCheck = await fetch('http://localhost:5000/api/health');
+    if (healthCheck.ok) {
+      return 'http://localhost:5000';
+    }
+  } catch {
+    console.log('Local backend not available, using Render backend');
+  }
+  return 'https://lebaincode-backend.onrender.com';
+};
+
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   setUser: () => {},
@@ -21,28 +33,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUserData = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) throw new Error('No token found');
-
-      const baseUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:5000'
-        : 'https://lebaincode-backend.onrender.com';
-
-      const response = await fetch(`${baseUrl}/api/user/profile`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        console.error('Failed to fetch user data:', response.status, response.statusText);
+      if (!token) {
+        console.log('No token found, clearing user state');
         setUser(null);
-        localStorage.removeItem('token');
-        throw new Error('Failed to fetch user data');
+        setIsLoading(false);
+        return null;
       }
-
+  
+      const apiUrl = await getApiUrl();
+      console.log('Fetching user data from:', apiUrl);
+  
+      const response = await fetch(`${apiUrl}/api/auth/user/profile`, { // Updated endpoint
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+  
+      if (!response.ok) {
+        console.log('Failed to fetch user data:', response.status);
+        localStorage.removeItem('token');
+        setUser(null);
+        setIsLoading(false);
+        return null;
+      }
+  
       const userData = await response.json();
-      // Transform the data to match our User type if needed
-      const transformedUser: User = {
+      const transformedUser = {
         _id: userData._id,
         username: userData.username,
         email: userData.email,
@@ -50,16 +68,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         githubId: userData.githubId,
         progress: userData.progress
       };
-
+  
       setUser(transformedUser);
+      setIsLoading(false);
       return transformedUser;
     } catch (error) {
-      console.error('Error fetching user data:', error);
-      setUser(null);
+      console.error('Error in fetchUserData:', error);
       localStorage.removeItem('token');
-      throw error;
-    } finally {
+      setUser(null);
       setIsLoading(false);
+      return null;
     }
   };
 
@@ -67,19 +85,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handleAuthentication = async () => {
       try {
         const tokenFromUrl = searchParams.get('token');
-        console.log('Token from URL:', tokenFromUrl);
         
         if (tokenFromUrl) {
-          console.log('Token saved to localStorage');
           localStorage.setItem('token', tokenFromUrl);
           await fetchUserData();
+          // Use window.history.replaceState to remove token from URL
+          window.history.replaceState({}, document.title, window.location.pathname);
         } else {
           const storedToken = localStorage.getItem('token');
           if (storedToken) {
-            console.log('Token found in localStorage, fetching user data');
             await fetchUserData();
           } else {
-            console.log('No token found, redirecting to home');
             setIsLoading(false);
           }
         }
@@ -88,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     };
-
+  
     handleAuthentication();
   }, [searchParams]);
 

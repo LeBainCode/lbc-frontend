@@ -7,21 +7,32 @@ interface AuthModalProps {
   onClose: () => void;
 }
 
+const getApiUrl = async () => {
+  try {
+    const healthCheck = await fetch('http://localhost:5000/api/health');
+    if (healthCheck.ok) {
+      return 'http://localhost:5000';
+    }
+  } catch {
+    console.log('Local backend not available, using Render backend');
+  }
+  return 'https://lebaincode-backend.onrender.com';
+};
+
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     
   if (!isOpen) return null;
-
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleGitHubAuth = () => {
+  const handleGitHubAuth = async () => {
     try {
       console.log('GitHub authentication initiated.');
       setIsLoading(true);
-      // Redirect to backend GitHub auth route
-      window.location.href =
-        process.env.NODE_ENV === 'production'
-          ? 'https://lebaincode-backend.onrender.com/api/auth/github'
-          : 'http://localhost:5000/api/auth/github';
+      
+      const apiUrl = await getApiUrl();
+      console.log('Current API URL:', apiUrl);
+      
+      window.location.href = `${apiUrl}/api/auth/github`;
     } catch (error) {
       console.error('GitHub auth error:', error);
       setIsLoading(false);

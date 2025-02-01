@@ -23,12 +23,34 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('https://lebaincode-backend.onrender.com/api/auth/login', {
+      // First try localhost:5000
+      let apiUrl = 'http://localhost:5000';
+      
+      try {
+        // Test if localhost:5000 is available
+        const testResponse = await fetch(`${apiUrl}/api/health`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!testResponse.ok) {
+          throw new Error('Local backend not available');
+        }
+      } catch (error) {
+        // If localhost:5000 is not available, use Render backend
+        console.log('Local backend not available, using Render backend');
+        apiUrl = 'https://lebaincode-backend.onrender.com';
+      }
+  
+      console.log('Current API URL:', apiUrl); // Debug line
+  
+      const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify(credentials),
       });
   

@@ -1,9 +1,25 @@
 // src/app/services/auth.ts
-const API_URL = 'http://localhost:5000/api/auth';
+
+const getApiUrl = async () => {
+  // Try to connect to local backend first
+  try {
+    const response = await fetch('http://localhost:5000/api/health');
+    if (response.ok) {
+      return 'http://localhost:5000';
+    }
+  } catch (error) {
+    console.log('Local backend not available, using Render backend');
+  }
+  // Fall back to Render backend if local is not available
+  return 'https://lebaincode-backend.onrender.com';
+};
 
 export const authService = {
   async login(username: string, password: string) {
-    const response = await fetch(`${API_URL}/login`, {
+    const apiUrl = await getApiUrl();
+    console.log('Current API URL:', apiUrl); // Debug line
+
+    const response = await fetch(`${apiUrl}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -17,29 +17,37 @@ export default function AdminPanel() {
     const [selectedType, setSelectedType] = useState<string>('all');
     const [showNoEmail, setShowNoEmail] = useState(true);
 
+    const getApiUrl = async () => {
+        try {
+            // Try to connect to local backend first
+            const healthCheck = await fetch('http://localhost:5000/api/health');
+            if (healthCheck.ok) {
+                return 'http://localhost:5000';
+            }
+        } catch {
+            console.log('Local backend not available, using Render backend');
+        }
+        return 'https://lebaincode-backend.onrender.com';
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const baseUrl = window.location.hostname === 'localhost' 
-                    ? 'http://localhost:5000'
-                    : 'https://lebaincode-backend.onrender.com';
-                
+                const apiUrl = await getApiUrl();
+                console.log('Current API URL:', apiUrl);
+
+                const token = localStorage.getItem('token');
+                if (!token) throw new Error('No token found');
+
+                const headers = {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                };
+
                 const [countResponse, usersResponse, prospectsResponse] = await Promise.all([
-                    fetch(`${baseUrl}/api/admin/users/count`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    }),
-                    fetch(`${baseUrl}/api/admin/users`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    }),
-                    fetch(`${baseUrl}/api/admin/prospects`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    })
+                    fetch(`${apiUrl}/api/admin/users/count`, { headers }),
+                    fetch(`${apiUrl}/api/admin/users`, { headers }),
+                    fetch(`${apiUrl}/api/admin/prospects`, { headers })
                 ]);
 
                 if (!countResponse.ok || !usersResponse.ok || !prospectsResponse.ok) {
@@ -65,22 +73,20 @@ export default function AdminPanel() {
 
         if (user?.role === 'admin') {
             fetchData();
-            // Set up polling for updates
-            const interval = setInterval(fetchData, 30000); // Poll every 30 seconds
+            const interval = setInterval(fetchData, 30000);
             return () => clearInterval(interval);
         }
     }, [user]);
 
     const handleTypeChange = async (email: string, type: string) => {
         try {
-            const baseUrl = window.location.hostname === 'localhost' 
-                ? 'http://localhost:5000'
-                : 'https://lebaincode-backend.onrender.com';
+            const apiUrl = await getApiUrl();
+            const token = localStorage.getItem('token');
             
-            const response = await fetch(`${baseUrl}/api/admin/prospects/${email}/type`, {
+            const response = await fetch(`${apiUrl}/api/admin/prospects/${email}/type`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ type })
@@ -100,14 +106,13 @@ export default function AdminPanel() {
 
     const handleReachedOutChange = async (email: string, reachedOut: boolean) => {
         try {
-            const baseUrl = window.location.hostname === 'localhost' 
-                ? 'http://localhost:5000'
-                : 'https://lebaincode-backend.onrender.com';
+            const apiUrl = await getApiUrl();
+            const token = localStorage.getItem('token');
             
-            const response = await fetch(`${baseUrl}/api/admin/prospects/${email}/reached-out`, {
+            const response = await fetch(`${apiUrl}/api/admin/prospects/${email}/reached-out`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ reachedOut })
@@ -127,14 +132,13 @@ export default function AdminPanel() {
 
     const handleCommentChange = async (email: string, comment: string) => {
         try {
-            const baseUrl = window.location.hostname === 'localhost' 
-                ? 'http://localhost:5000'
-                : 'https://lebaincode-backend.onrender.com';
+            const apiUrl = await getApiUrl();
+            const token = localStorage.getItem('token');
             
-            const response = await fetch(`${baseUrl}/api/admin/prospects/${email}/comment`, {
+            const response = await fetch(`${apiUrl}/api/admin/prospects/${email}/comment`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ comment })

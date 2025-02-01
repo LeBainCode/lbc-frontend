@@ -15,7 +15,7 @@ export default function NotificationCard({
   onAction,
 }: NotificationCardProps) {
   return (
-    <div className="flex flex-col bg-[#000000] rounded-2xl p-6">
+    <div className="flex flex-col bg-[#000000] w-[300px] h-[200px] rounded-2xl p-6">
       <div className="flex justify-between items-start mb-4">
         <div className="flex flex-col mt-auto">
           <h3 className="text-white text-xl font-medium">{title}</h3>
@@ -27,7 +27,7 @@ export default function NotificationCard({
 
       <button
         onClick={onAction}
-        className="w-full bg-[#374151] opacity-70 text-white py-2 rounded text-sm hover:bg-gray-700 mt-auto"
+        className="w-full bg-[#374151] border-2 border-[#e6e6e6] opacity-70 text-[#e6e6e6] py-2 rounded text-sm mt-auto"
       >
         {actionLabel}
       </button>

@@ -25,14 +25,14 @@ export default function ModuleCard({
 
   return (
     <Link href={isLocked ? "#" : href}>
-      <div className="bg-white rounded-lg w-[300px] h-[300px] relative">
-        <div className="absolute top-0 left-0 right-0">
+      <div className="flex flex-col justify-center bg-[#e8e6fe] bg-opacity-90 rounded-lg w-[300px] h-[300px] relative">
+        <div className="flex flex-col border-b border-black">
           <div className="h-1 w-full">
             <div className="h-10 bg-[#BF9ACA] w-[30%]" />
           </div>
           <button
             onClick={handleClose}
-            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl cursor-pointer"
+            className="absolute top-2 right-2 text-[#252525] hover:text-gray-600 text-xl cursor-pointer"
           >
             ×
           </button>

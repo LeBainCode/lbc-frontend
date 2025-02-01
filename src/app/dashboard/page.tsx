@@ -89,7 +89,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <main className="min-h-screen bg-[#111827]">
+      <main className="min-h-screen bg-[#0D1117]">
         <Navbar />
         <div className="container mx-auto px-6 pt-32">
           <div className="mb-1">

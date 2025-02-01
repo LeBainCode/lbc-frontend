@@ -2,7 +2,7 @@ export default function Footer() {
   return (
     <>
       {/* Newsletter Section - Outside Footer */}
-      <div className="bg-[#0D1117] pb-16">
+      <div className="bg-[#0D1117] pt-16 pb-16">
         <div className="container mx-auto px-6">
           <h3 className="text-white text-sm font-medium mb-1">
             Subscribe to our newsletter

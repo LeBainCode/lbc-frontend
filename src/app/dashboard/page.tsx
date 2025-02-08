@@ -1,7 +1,8 @@
 // src/app/dashboard/page.tsx
 "use client";
+
 import { useAuth } from "../context/AuthContext";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -14,55 +15,36 @@ import AlertPopup from "../components/AlertPopup";
 export default function Dashboard() {
   const { user, fetchUserData } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
-    const handleAuthentication = async () => {
+    const checkAuthentication = async () => {
       try {
-        const token = searchParams.get("token");
-        console.log("Token from URL:", token);
-
-        if (token) {
-          localStorage.setItem("token", token);
-          console.log("Token saved to localStorage");
-
-          const url = new URL(window.location.href);
-          url.searchParams.delete("token");
-          window.history.replaceState({}, document.title, url.toString());
-          console.log("URL cleaned up");
-
-          await fetchUserData();
-          console.log("User data fetched successfully");
-        } else {
-          const storedToken = localStorage.getItem("token");
-          if (!storedToken) {
-            console.log("No token found, setting redirect flag");
-            setShouldRedirect(true);
-            return;
-          }
+        // Verify the session with the backend
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-session`, {
+          method: "GET",
+          credentials: "include", // Include cookies in the request
+        });
+    
+        if (response.ok) {
+          // Fetch user data if not already loaded
           if (!user) {
             await fetchUserData();
           }
+        } else {
+          // If session is invalid, redirect to home
+          router.push("/");
         }
       } catch (error) {
-        console.error("Authentication error:", error);
-        localStorage.removeItem("token");
-        setShouldRedirect(true);
+        console.error("Error verifying session:", error);
+        router.push("/");
       } finally {
         setIsLoading(false);
       }
     };
 
-    handleAuthentication();
-  }, [searchParams, fetchUserData]);
-
-  useEffect(() => {
-    if (shouldRedirect) {
-      router.push("/");
-    }
-  }, [shouldRedirect, router]);
+    checkAuthentication();
+  }, [fetchUserData, user, router]);
 
   if (isLoading) {
     return (
@@ -72,7 +54,7 @@ export default function Dashboard() {
     );
   }
 
-  if (!user || shouldRedirect) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-[#111827] flex items-center justify-center">
         <p className="text-white">Redirecting...</p>
@@ -117,7 +99,7 @@ export default function Dashboard() {
           <div className="mt-12">
             <Modules />
           </div>
-          <AdminPanel />
+          {user.role === "admin" && <AdminPanel />}
         </div>
         <AlertPopup hasEmail={Boolean(user?.email)} />
       </main>

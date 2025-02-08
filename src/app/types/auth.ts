@@ -1,6 +1,6 @@
 // src/app/types/auth.ts
 
-// Progress interface 
+// Progress interface remains the same
 export interface UserProgress {
   cModule: {
     completed: number;
@@ -13,14 +13,17 @@ export interface UserProgress {
   };
 }
 
-// User interface 
+//  User interface
 export interface User {
   _id: string;
   username: string;
-  email?: string;  // Add this line
-  githubId?: string;  // Add this line if needed
-  role: 'user' | 'admin';  
-  progress: UserProgress;  
+  email?: string;
+  githubId?: string;
+  githubUsername?: string;  
+  githubAvatar?: string;    
+  role: 'user' | 'admin';
+  progress: UserProgress;
+  // Add any other GitHub-related fields you might need
 }
 
 // AuthContextType 
@@ -29,4 +32,21 @@ export interface AuthContextType {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   fetchUserData: () => Promise<User | null>;
   isLoading: boolean;
+  error: string | null;                    //  error state
+  logout: () => void;                      //  logout function
+  isAuthenticated: boolean;                // authentication status
+  githubLogin?: () => Promise<void>;       // direct GitHub login method
+}
+
+//GitHub-specific types if needed
+export interface GitHubAuthResponse {
+  accessToken: string;
+  user: User;
+}
+
+// Error types 
+export type AuthError = {
+  message: string;
+  code?: string;
+  status?: number;
 }

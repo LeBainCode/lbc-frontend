@@ -1,126 +1,36 @@
 // src/app/context/AuthContext.tsx
-'use client';
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AuthContextType, User } from '../types/auth';
-import { useSearchParams } from 'next/navigation';
 
-const getApiUrl = async () => {
-  try {
-    const healthCheck = await fetch('http://localhost:5000/api/health');
-    if (healthCheck.ok) {
-      return 'http://localhost:5000';
+'use client';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { AuthContextType, User } from '../types/auth';
+
+const debug = (message: string, data?: any) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[AuthContext] ${message}`, data || '');
+  
+  if (typeof window !== 'undefined') {
+    try {
+      const logs = JSON.parse(localStorage.getItem('authContextLogs') || '[]');
+      logs.push({ timestamp, message, data });
+      localStorage.setItem('authContextLogs', JSON.stringify(logs));
+    } catch (error) {
+      console.warn('[AuthContext] LocalStorage error:', error);
     }
-  } catch {
-    console.log('Local backend not available, using Render backend');
   }
-  return 'https://lebaincode-backend.onrender.com';
 };
 
+// Update the initial context value to include isAuthenticated
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   setUser: () => {},
   fetchUserData: async () => {
     throw new Error('fetchUserData not implemented');
   },
-  isLoading: true
+  isLoading: true,
+  error: null,
+  logout: () => {},
+  isAuthenticated: false // Add this line
 });
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const searchParams = useSearchParams();
-
-  const fetchUserData = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('No token found, clearing user state');
-        setUser(null);
-        setIsLoading(false);
-        return null;
-      }
-  
-      const apiUrl = await getApiUrl();
-      console.log('Fetching user data from:', apiUrl);
-  
-      const response = await fetch(`${apiUrl}/api/auth/user/profile`, { // Updated endpoint
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-  
-      if (!response.ok) {
-        console.log('Failed to fetch user data:', response.status);
-        localStorage.removeItem('token');
-        setUser(null);
-        setIsLoading(false);
-        return null;
-      }
-  
-      const userData = await response.json();
-      const transformedUser = {
-        _id: userData._id,
-        username: userData.username,
-        email: userData.email,
-        role: userData.role,
-        githubId: userData.githubId,
-        progress: userData.progress
-      };
-  
-      setUser(transformedUser);
-      setIsLoading(false);
-      return transformedUser;
-    } catch (error) {
-      console.error('Error in fetchUserData:', error);
-      localStorage.removeItem('token');
-      setUser(null);
-      setIsLoading(false);
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    const handleAuthentication = async () => {
-      try {
-        const tokenFromUrl = searchParams.get('token');
-        
-        if (tokenFromUrl) {
-          localStorage.setItem('token', tokenFromUrl);
-          await fetchUserData();
-          // Use window.history.replaceState to remove token from URL
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } else {
-          const storedToken = localStorage.getItem('token');
-          if (storedToken) {
-            await fetchUserData();
-          } else {
-            setIsLoading(false);
-          }
-        }
-      } catch (error) {
-        console.error('Authentication error:', error);
-        setIsLoading(false);
-      }
-    };
-  
-    handleAuthentication();
-  }, [searchParams]);
-
-  const value: AuthContextType = {
-    user,
-    setUser,
-    fetchUserData,
-    isLoading
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -129,3 +39,92 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const isValidToken = (token: string): boolean => {
+    try {
+      return token.length > 0 && typeof token === 'string';
+    } catch {
+      return false;
+    }
+  };
+
+  const logout = useCallback(() => {
+    debug('Logging out user');
+    localStorage.removeItem('token');
+    setUser(null);
+    setError(null);
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      debug('Fetching user data');
+  
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/check`, {
+        credentials: 'include', 
+      });
+  
+      if (!response.ok) {
+        debug('API response not ok', { status: response.status });
+        logout();
+        setIsLoading(false);
+        return null;
+      }
+  
+      const { authenticated, user } = await response.json();
+      debug('User data received', { authenticated, user });
+  
+      if (authenticated && user) {
+        setUser(user);
+      } else {
+        logout();
+      }
+  
+      setIsLoading(false);
+      return user;
+    } catch (error) {
+      debug('Error fetching user data', error);
+      setError('Failed to fetch user data');
+      logout();
+      setIsLoading(false);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    debug('Initializing auth state', {
+      apiUrl: process.env.NEXT_PUBLIC_API_URL,
+      environment: process.env.NODE_ENV
+    });
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    debug('Auth state updated', { 
+      isAuthenticated: !!user,
+      isLoading,
+      hasError: !!error 
+    });
+  }, [user, isLoading, error]);
+
+  // Include isAuthenticated in the context value
+  const value: AuthContextType = {
+    user,
+    setUser,
+    fetchUserData,
+    isLoading,
+    error,
+    logout,
+    isAuthenticated: !!user 
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+}

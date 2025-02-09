@@ -22,23 +22,14 @@ export default function AdminPanel() {
   const [selectedType, setSelectedType] = useState<string>("all");
   const [showNoEmail, setShowNoEmail] = useState(true);
 
-  const getApiUrl = async () => {
-    try {
-      // Try to connect to local backend first
-      const healthCheck = await fetch("http://localhost:5000/api/health");
-      if (healthCheck.ok) {
-        return "http://localhost:5000";
-      }
-    } catch {
-      console.log("Local backend not available, using Render backend");
-    }
-    return "https://lebaincode-backend.onrender.com";
+  const getApiUrl = () => {
+    return process.env.NEXT_PUBLIC_API_URL;
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const apiUrl = await getApiUrl();
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         
         // Fetch users
         const usersResponse = await fetch(`${apiUrl}/api/admin/users`, {

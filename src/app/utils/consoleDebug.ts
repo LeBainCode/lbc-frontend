@@ -1,12 +1,12 @@
 // src/app/utils/consoleDebug.ts
 
-interface DebugInfo {
+export interface DebugInfo {
     environment: string;
     apiUrl: string;
     version: string;
     buildTime: string;
   }
-  
+
   export class ConsoleDebugger {
     private static instance: ConsoleDebugger;
     private isDev: boolean;

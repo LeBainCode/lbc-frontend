@@ -12,88 +12,156 @@ import FAQ from "./components/FAQ";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import LoginModal from "./components/LoginModal";
+import { ConsoleDebugger } from './utils/consoleDebug';
+import type { DebugInfo } from './utils/consoleDebug';
+
+interface Prospect {
+  email: string;
+  createdAt: string;
+  type?: 'individual' | 'organization' | 'other';
+  reachedOut?: boolean;
+  comment?: string;
+}
+
+// Initialize debugger
+const consoleDebugger = ConsoleDebugger.getInstance();
+const debugInfo: DebugInfo = {
+  environment: process.env.NODE_ENV || 'development',
+  apiUrl: process.env.NODE_ENV === 'production' 
+    ? 'https://lebaincode-backend.onrender.com' 
+    : 'http://localhost:5000',
+  version: '1.0.0', 
+  buildTime: new Date().toISOString()
+};
 
 export default function Home() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { user, setUser } = useAuth();
-  const router = useRouter();
   const [emailMessage, setEmailMessage] = useState('');
+  const { user } = useAuth();
+  const router = useRouter();
 
-  // Effect to set email if user has one
+   // Initialize debugging and handle user email
+   useEffect(() => {
+    consoleDebugger.showUserWelcome();
+    consoleDebugger.showDevConsole(debugInfo);
+
+    console.group('🏠 Home Component Initialized');
+    console.log('User:', user);
+    console.log('Initial Email:', email);
+    console.log('Environment:', debugInfo.environment);
+    console.groupEnd();
+  }, []); // Run once on mount
+
+  // Handle user email updates
   useEffect(() => {
     if (user?.email) {
+      console.log('Setting email from user:', user.email);
       setEmail(user.email);
+      setEmailMessage('Welcome back!');
     }
-  }, [user]);
+  }, [user?.email]); // Only run when user email changes
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    try {
-      const baseUrl = process.env.NODE_ENV === 'production'
-        ? 'https://lebaincode-backend.onrender.com'
-        : 'http://localhost:5000';
+    console.group('📧 Email Submission');
+    console.log('Starting email submission process', {
+      email,
+      isLoggedIn: !!user,
+      timestamp: new Date().toISOString()
+    });
   
-      // If user is not logged in
+    try {
+      const baseUrl = debugInfo.apiUrl;
+      console.log('Using API URL:', baseUrl);
+  
       if (!user) {
+        console.group('🔍 User Check');
         // Check if email exists in User collection
         const userCheckResponse = await fetch(`${baseUrl}/api/users/check-email`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ email })
         });
+  
         const userData = await userCheckResponse.json();
+        console.log('User check response:', userData);
+        console.groupEnd();
   
         if (userData.exists) {
+          console.log('✋ Existing user found:', userData.username);
           setEmailMessage(`Hi ${userData.username}, please login`);
           return;
         }
   
+        console.group('🔍 Prospect Check');
         // Check if email exists in Prospects collection
         const prospectCheckResponse = await fetch(`${baseUrl}/api/prospects/check-email`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ email })
         });
+  
         const prospectData = await prospectCheckResponse.json();
+        console.log('Prospect check response:', prospectData);
+        console.groupEnd();
   
         if (prospectData.exists) {
+          console.log('✋ Existing prospect found');
           setEmailMessage('This email is already registered');
           return;
         }
   
-        // If email doesn't exist anywhere, register as new prospect
+        console.group('📝 New Prospect Registration');
+        // Register new prospect
         const response = await fetch(`${baseUrl}/api/prospects/email`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ email })
         });
   
+        const responseData = await response.json();
+        console.log('Registration response:', responseData);
+        console.groupEnd();
+  
         if (!response.ok) {
-          throw new Error('Failed to save email');
+          throw new Error(responseData.message || 'Failed to save email');
         }
   
+        console.log('✅ Email saved successfully');
         setEmailMessage('Email saved successfully!');
+        setIsSubmitted(true);
       } else {
-        // User is logged in - show their email with message
+        console.log('👤 Logged in user:', user);
         setEmail(user.email || '');
         setEmailMessage('Welcome back!');
       }
   
       setTimeout(() => setEmailMessage(''), 3000);
     } catch (error) {
-      console.error('Error:', error);
-      setEmailMessage('An error occurred');
+      console.group('❌ Error');
+      console.error('Email submission error:', error);
+      console.trace('Error stack:');
+      console.groupEnd();
+      
+      setEmailMessage(error instanceof Error ? error.message : 'An error occurred');
+      setTimeout(() => setEmailMessage(''), 3000);
+    } finally {
+      console.groupEnd(); // Close Email Submission group
     }
   };
+  
 
   const handleDashboardClick = () => {
     router.push('/dashboard');

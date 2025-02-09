@@ -12,13 +12,28 @@ export default function Navbar() {
   const router = useRouter()
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     console.log('Signing out...');
-    localStorage.removeItem('token')
-    setUser(null)
-    router.push('/')
-    console.log('User signed out and redirected to home.');
-  }
+    try {
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+  
+      if (response.ok) {
+        console.log('Backend logout successful');
+      } else {
+        console.error('Failed to log out on the backend');
+      }
+  
+      setUser(null);
+      router.push('/');
+      console.log('User signed out and redirected to home.');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return (
     <>

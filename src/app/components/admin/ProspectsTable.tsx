@@ -18,7 +18,6 @@ export default function ProspectsTable({
     onCommentChange,
     onFilterChange
 }: ProspectsTableProps) {
-    const { user } = useAuth();
     const filteredProspects = selectedType === 'all'
         ? prospects
         : prospects.filter(p => p.type === selectedType);

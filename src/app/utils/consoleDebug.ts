@@ -3,6 +3,7 @@
 export interface DebugInfo {
     environment: string;
     apiUrl: string;
+    backendType?: string; 
     version: string;
     buildTime: string;
   }
@@ -10,6 +11,8 @@ export interface DebugInfo {
   export class ConsoleDebugger {
     private static instance: ConsoleDebugger;
     private isDev: boolean;
+    private localBackendUrl = 'http://localhost:5000';
+    private renderBackendUrl = 'https://lebaincode-backend.onrender.com';
   
     private constructor() {
       this.isDev = process.env.NODE_ENV === 'development';
@@ -54,9 +57,44 @@ export interface DebugInfo {
         'color: #00ff00; font-family: monospace; font-size: 10px;'
       );
     }
+
+    private async detectBackendUrl(): Promise<string> {
+      if (!this.isDev) {
+        return this.renderBackendUrl;
+      }
+    
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1000); // 1 second timeout
+    
+        const response = await fetch(`${this.localBackendUrl}/api/health`, {
+          method: 'HEAD',
+          signal: controller.signal
+        });
+    
+        clearTimeout(timeoutId);
+    
+        if (response.ok) {
+          return this.localBackendUrl;
+        }
+        return this.renderBackendUrl;
+      } catch (error) {
+        // If local backend is not available or timeout occurs, use Render
+        return this.renderBackendUrl;
+      }
+    }
   
-    showDevConsole(info: DebugInfo) {
+    async showDevConsole(info: DebugInfo) {
       if (!this.isDev) return;
+  
+      const detectedApiUrl = await this.detectBackendUrl();
+      const backendType = detectedApiUrl === this.localBackendUrl ? 'Local' : 'Render';
+  
+      const debugInfo = {
+        ...info,
+        apiUrl: detectedApiUrl,
+        backendType: backendType
+      };
   
       console.log(
         '%c' + this.devAsciiArt,
@@ -64,10 +102,9 @@ export interface DebugInfo {
       );
   
       console.group('%c🔍 Debug Information', 'color: #ff0000; font-weight: bold;');
-      console.table(info);
+      console.table(debugInfo);
       console.groupEnd();
   
-      // Add keyboard shortcut for debug panel
       this.initializeDevShortcuts();
     }
   
@@ -87,4 +124,5 @@ export interface DebugInfo {
       console.log('%c⚡ Performance:', 'color: #00ff00', 'Optimal');
       console.groupEnd();
     }
+    
   }

@@ -23,17 +23,6 @@ interface Prospect {
   comment?: string;
 }
 
-// Initialize debugger
-const consoleDebugger = ConsoleDebugger.getInstance();
-const debugInfo: DebugInfo = {
-  environment: process.env.NODE_ENV || 'development',
-  apiUrl: process.env.NODE_ENV === 'production' 
-    ? 'https://lebaincode-backend.onrender.com' 
-    : 'http://localhost:5000',
-  version: '1.0.0', 
-  buildTime: new Date().toISOString()
-};
-
 export default function Home() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -42,26 +31,30 @@ export default function Home() {
   const { user } = useAuth();
   const router = useRouter();
 
-   // Initialize debugging and handle user email
-   useEffect(() => {
+  const [apiUrl, setApiUrl] = useState<string>('');
+  
+
+  useEffect(() => {
+    const consoleDebugger = ConsoleDebugger.getInstance();
+    const debugInfo: DebugInfo = {
+      environment: process.env.NODE_ENV || 'development',
+      apiUrl: process.env.NEXT_PUBLIC_API_URL || 'https://lebaincode-backend.onrender.com',
+      version: '1.0.0',
+      buildTime: new Date().toISOString()
+    };
+
+    // Store the API URL in state
+    setApiUrl(debugInfo.apiUrl);
+  
     consoleDebugger.showUserWelcome();
     consoleDebugger.showDevConsole(debugInfo);
-
+  
     console.group('🏠 Home Component Initialized');
     console.log('User:', user);
     console.log('Initial Email:', email);
     console.log('Environment:', debugInfo.environment);
     console.groupEnd();
-  }, []); // Run once on mount
-
-  // Handle user email updates
-  useEffect(() => {
-    if (user?.email) {
-      console.log('Setting email from user:', user.email);
-      setEmail(user.email);
-      setEmailMessage('Welcome back!');
-    }
-  }, [user?.email]); // Only run when user email changes
+  }, []);
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -74,13 +67,10 @@ export default function Home() {
     });
   
     try {
-      const baseUrl = debugInfo.apiUrl;
-      console.log('Using API URL:', baseUrl);
+      console.log('Using API URL:', apiUrl);
   
       if (!user) {
-        console.group('🔍 User Check');
-        // Check if email exists in User collection
-        const userCheckResponse = await fetch(`${baseUrl}/api/users/check-email`, {
+        const userCheckResponse = await fetch(`${apiUrl}/api/users/check-email`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -94,14 +84,14 @@ export default function Home() {
         console.groupEnd();
   
         if (userData.exists) {
-          console.log('✋ Existing user found:', userData.username);
+          console.log('✓ Existing user found:', userData.username);
           setEmailMessage(`Hi ${userData.username}, please login`);
           return;
         }
   
         console.group('🔍 Prospect Check');
         // Check if email exists in Prospects collection
-        const prospectCheckResponse = await fetch(`${baseUrl}/api/prospects/check-email`, {
+        const prospectCheckResponse = await fetch(`${apiUrl}/api/prospects/check-email`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -115,14 +105,14 @@ export default function Home() {
         console.groupEnd();
   
         if (prospectData.exists) {
-          console.log('✋ Existing prospect found');
+          console.log('✓ Existing prospect found');
           setEmailMessage('This email is already registered');
           return;
         }
   
         console.group('📝 New Prospect Registration');
         // Register new prospect
-        const response = await fetch(`${baseUrl}/api/prospects/email`, {
+        const response = await fetch(`${apiUrl}/api/prospects/email`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -139,7 +129,7 @@ export default function Home() {
           throw new Error(responseData.message || 'Failed to save email');
         }
   
-        console.log('✅ Email saved successfully');
+        console.log('✔ Email saved successfully');
         setEmailMessage('Email saved successfully!');
         setIsSubmitted(true);
       } else {
@@ -158,7 +148,7 @@ export default function Home() {
       setEmailMessage(error instanceof Error ? error.message : 'An error occurred');
       setTimeout(() => setEmailMessage(''), 3000);
     } finally {
-      console.groupEnd(); // Close Email Submission group
+      console.groupEnd();
     }
   };
   

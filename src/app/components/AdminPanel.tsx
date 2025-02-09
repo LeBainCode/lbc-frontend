@@ -55,6 +55,7 @@ export default function AdminPanel() {
         const prospectsData = await prospectsResponse.json();
         
         setRegularUsers(usersData);
+        setUserCount(usersData.length);
         setProspects(prospectsData);
       } catch (error) {
         console.error("Error:", error);

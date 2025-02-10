@@ -1,6 +1,8 @@
 // src/app/components/AnalyticsSection.tsx
+
 'use client';
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 interface PageView {
   path: string;
@@ -19,30 +21,42 @@ interface AnalyticsData {
 }
 
 export default function AnalyticsSection() {
+  const { user } = useAuth();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const isProduction = process.env.NODE_ENV === 'production';
 
-  // Fetch analytics data from backend
   useEffect(() => {
     const fetchAnalytics = async () => {
+      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL); 
+      if (!user) {
+        setError('Authentication required');
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        
         const response = await fetch(`${apiUrl}/api/admin/analytics/frontend-data`, {
-          credentials: "include", // Maintain HTTP cookies
+          credentials: "include",
           headers: {
-            "Content-Type": "application/json",
-          },
+            "Content-Type": "application/json"
+          }
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch analytics data');
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch analytics data');
         }
 
         const data = await response.json();
         setAnalyticsData(data);
+        setError(null);
       } catch (error) {
         console.error('Error fetching analytics:', error);
+        setError(error instanceof Error ? error.message : 'Failed to fetch analytics data');
       } finally {
         setIsLoading(false);
       }
@@ -51,9 +65,8 @@ export default function AnalyticsSection() {
     fetchAnalytics();
     const interval = setInterval(fetchAnalytics, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
-  // Track page views only in production
   useEffect(() => {
     const trackPageView = () => {
       if (isProduction) {
@@ -71,11 +84,29 @@ export default function AnalyticsSection() {
     trackPageView();
   }, [isProduction]);
 
+  if (!user) {
+    return (
+      <div className="bg-gray-800/50 rounded-lg p-6">
+        <h3 className="text-xl font-semibold text-white mb-4">Website Analytics</h3>
+        <div className="text-red-400">Please log in to view analytics</div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="bg-gray-800/50 rounded-lg p-6">
         <h3 className="text-xl font-semibold text-white mb-4">Website Analytics</h3>
         <div className="text-gray-400">Loading analytics data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-gray-800/50 rounded-lg p-6">
+        <h3 className="text-xl font-semibold text-white mb-4">Website Analytics</h3>
+        <div className="text-red-400">Error: {error}</div>
       </div>
     );
   }
@@ -91,7 +122,6 @@ export default function AnalyticsSection() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Analytics Cards */}
         <div className="bg-gray-700/50 p-4 rounded-lg">
           <h4 className="text-sm text-gray-400">Total Visits</h4>
           <p className="text-2xl font-bold text-white">
@@ -124,7 +154,6 @@ export default function AnalyticsSection() {
           </p>
         </div>
 
-        {/* Most Visited Pages */}
         <div className="bg-gray-700/50 p-4 rounded-lg col-span-full">
           <h4 className="text-sm text-gray-400 mb-2">Most Visited Pages</h4>
           <div className="space-y-2">

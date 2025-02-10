@@ -1,17 +1,22 @@
 // src/app/context/AuthContext.tsx
-
 'use client';
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { AuthContextType, User } from '../types/auth';
 
 const debug = (message: string, data?: any) => {
   const timestamp = new Date().toISOString();
-  console.log(`[AuthContext] ${message}`, data || '');
-  
+  if (data?.status === 401) {
+    console.log(`[AuthContext] ${message} (Expected - User not authenticated)`);
+  } else {
+    console.log(`[AuthContext] ${message}`, data || '');
+  }
+
   if (typeof window !== 'undefined') {
     try {
       const logs = JSON.parse(localStorage.getItem('authContextLogs') || '[]');
       logs.push({ timestamp, message, data });
+      // Keep only the last 50 logs
+      if (logs.length > 50) logs.shift();
       localStorage.setItem('authContextLogs', JSON.stringify(logs));
     } catch (error) {
       console.warn('[AuthContext] LocalStorage error:', error);
@@ -19,7 +24,6 @@ const debug = (message: string, data?: any) => {
   }
 };
 
-// Update the initial context value to include isAuthenticated
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   setUser: () => {},
@@ -29,7 +33,7 @@ export const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   error: null,
   logout: () => {},
-  isAuthenticated: false // Add this line
+  isAuthenticated: false
 });
 
 export const useAuth = () => {
@@ -45,14 +49,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const isValidToken = (token: string): boolean => {
-    try {
-      return token.length > 0 && typeof token === 'string';
-    } catch {
-      return false;
-    }
-  };
-
   const logout = useCallback(() => {
     debug('Logging out user');
     localStorage.removeItem('token');
@@ -62,34 +58,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserData = async () => {
     try {
-      debug('Fetching user data');
-  
+      debug('Checking authentication status');
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/check`, {
-        credentials: 'include', 
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json'
+        }
       });
-  
-      if (!response.ok) {
-        debug('API response not ok', { status: response.status });
-        logout();
+
+      // Handle 401 as normal non-authenticated state
+      if (response.status === 401) {
+        debug('User not authenticated', { status: 401 });
+        setUser(null);
         setIsLoading(false);
         return null;
       }
-  
+
+      // Handle other non-200 responses as actual errors
+      if (!response.ok) {
+        debug('API error response', { status: response.status });
+        setError(`API error: ${response.status}`);
+        setIsLoading(false);
+        return null;
+      }
+
       const { authenticated, user } = await response.json();
-      debug('User data received', { authenticated, user });
-  
+      debug('Authentication check complete', { authenticated });
+
       if (authenticated && user) {
+        debug('User authenticated', { userId: user.id });
         setUser(user);
       } else {
-        logout();
+        debug('No authenticated user');
+        setUser(null);
       }
-  
+
       setIsLoading(false);
       return user;
     } catch (error) {
-      debug('Error fetching user data', error);
-      setError('Failed to fetch user data');
-      logout();
+      debug('Error checking authentication', error);
+      setError('Failed to check authentication status');
       setIsLoading(false);
       return null;
     }
@@ -98,20 +107,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     debug('Initializing auth state', {
       apiUrl: process.env.NEXT_PUBLIC_API_URL,
-      environment: process.env.NODE_ENV
+      environment: process.env.NODE_ENV,
+      isInitialLoad: true,
     });
     fetchUserData();
   }, []);
 
   useEffect(() => {
-    debug('Auth state updated', { 
+    debug('Auth state updated', {
       isAuthenticated: !!user,
       isLoading,
-      hasError: !!error 
+      hasError: !!error,
     });
+
+    return () => {
+      debug('Cleaning up auth state');
+    };
   }, [user, isLoading, error]);
 
-  // Include isAuthenticated in the context value
   const value: AuthContextType = {
     user,
     setUser,
@@ -119,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     error,
     logout,
-    isAuthenticated: !!user 
+    isAuthenticated: !!user,
   };
 
   return (

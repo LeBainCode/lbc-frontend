@@ -1,6 +1,7 @@
 // components/LoginModal.tsx
+
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 
@@ -17,41 +18,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     password: ''
   });
   const [error, setError] = useState('');
-  const [apiUrl, setApiUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // Initialize API URL from environment variable
-    setApiUrl(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000');
-    console.log('Initial API URL:', process.env.NEXT_PUBLIC_API_URL);
-  }, []);
-
   if (!isOpen) return null;
-
-  const checkBackendHealth = async (url: string): Promise<boolean> => {
-    try {
-      console.log(`Checking backend health at: ${url}/api/health`);
-      const response = await fetch(`${url}/api/health`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        console.warn(`Health check failed for ${url}:`, response.status);
-        return false;
-      }
-
-      const data = await response.json();
-      console.log('Health check response:', data);
-      return true;
-    } catch (error) {
-      console.error(`Health check error for ${url}:`, error);
-      return false;
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,22 +28,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setError('');
 
     try {
-      // Debug current state
-      console.log('Starting login process...');
-      console.log('Current API URL:', apiUrl);
-      console.log('Environment:', process.env.NODE_ENV);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      console.log('Attempting login at:', `${apiUrl}/api/auth/login`);
 
-      // Check local backend first
-      const isLocalAvailable = await checkBackendHealth(apiUrl);
-
-      if (!isLocalAvailable) {
-        console.log('Local backend not available, switching to Render');
-        setApiUrl('https://lebaincode-backend.onrender.com');
-      }
-
-      console.log('Using API URL:', apiUrl);
-
-      // Attempt login
       const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
@@ -84,33 +40,28 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         body: JSON.stringify(credentials),
       });
 
-      const data = await response.json();
-      console.log('Login response status:', response.status);
-      
-      if (response.ok) {
-        console.log('Login successful');
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-          console.log('Token stored in localStorage');
-        }
-        setUser(data.user);
-        onClose();
-        router.push('/dashboard');
-      } else {
-        console.error('Login failed:', data.message);
-        setError(data.message || 'Invalid credentials');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
       }
+
+      const data = await response.json();
+      console.log('Login successful');
+      
+      setUser(data.user);
+      onClose();
+      router.push('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
-      setError('Login failed. Please check your connection and try again.');
+      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-[#1F2937] p-8 rounded-lg w-96">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-[#1F2937] p-8 rounded-lg w-96 relative">
         <h2 className="text-2xl font-bold text-white mb-6">Organization Login</h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -120,6 +71,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:outline-none focus:border-[#BF9ACA]"
               value={credentials.username}
               onChange={(e) => setCredentials({...credentials, username: e.target.value})}
+              disabled={isLoading}
+              required
             />
             <input
               type="password"
@@ -127,18 +80,35 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:outline-none focus:border-[#BF9ACA]"
               value={credentials.password}
               onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+              disabled={isLoading}
+              required
             />
           </div>
-          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          
+          {error && (
+            <div className="mt-2 p-2 bg-red-500 bg-opacity-10 border border-red-500 rounded">
+              <p className="text-red-500 text-sm">{error}</p>
+            </div>
+          )}
+
           <div className="mt-6 flex gap-3">
             <button
               type="submit"
               disabled={isLoading}
-              className={`bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors flex-1 ${
+              className={`bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors flex-1 relative ${
                 isLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? (
+                <>
+                  <span className="opacity-0">Login</span>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                </>
+              ) : (
+                'Login'
+              )}
             </button>
             <button
               type="button"

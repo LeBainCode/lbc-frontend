@@ -26,21 +26,30 @@ export default function ModuleCard({
   return (
     <Link href={isLocked ? "#" : href}>
       <div className="flex flex-col justify-center bg-[#e8e6fe] bg-opacity-90 rounded-lg w-[300px] h-[300px] relative">
-        <div className="flex flex-col border-b border-black">
-          <div className="h-1 w-full">
-            <div className="h-10 bg-[#BF9ACA] w-[30%]" />
+        {/* Barre de progression + bouton alignés horizontalement */}
+        <div className="flex items-center px-3 pt-2 pb-1">
+          {/* Barre de progression */}
+          <div className="h-5 bg-gray-300 rounded-full flex-grow overflow-hidden">
+            <div className="h-full bg-[#BF9ACA] w-[30%] transition-all duration-300" />
           </div>
+
+          {/* Bouton de fermeture */}
           <button
             onClick={handleClose}
-            className="absolute top-2 right-2 text-[#252525] hover:text-gray-600 text-xl cursor-pointer"
+            className="ml-2 text-[#252525] hover:text-gray-600 text-xl cursor-pointer"
           >
             ×
           </button>
         </div>
-        <div className="flex items-center justify-center h-full">
+
+        {/* Barre de séparation */}
+        <div className="border-b border-gray-700 "></div>
+
+        {/* Contenu principal */}
+        <div className="flex items-center justify-center flex-grow">
           {isLocked ? (
             <svg
-              className="w-20 h-20 text-gray-400"
+              className="w-14 h-14 text-gray-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -53,7 +62,7 @@ export default function ModuleCard({
               />
             </svg>
           ) : (
-            <span className="text-6xl font-bold text-black">{type}</span>
+            <span className="text-4xl font-bold text-black">{type}</span>
           )}
         </div>
       </div>

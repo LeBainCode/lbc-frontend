@@ -44,7 +44,7 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                href="https://discord.js.org/#/"
+                href="https://discord.gg/zYJpXBNVhk"
                 className="text-gray-500 hover:text-gray-400"
               >
                 <svg

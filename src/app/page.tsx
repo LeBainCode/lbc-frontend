@@ -58,18 +58,19 @@ export default function Home() {
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    console.group('📧 Email Submission');
+  
+    console.group('üìß Email Submission');
     console.log('Starting email submission process', {
       email,
       isLoggedIn: !!user,
       timestamp: new Date().toISOString()
     });
-  
+    
     try {
       console.log('Using API URL:', apiUrl);
   
       if (!user) {
+        // --- Non-logged-in user: check if the email is associated with an existing user ---
         const userCheckResponse = await fetch(`${apiUrl}/api/users/check-email`, {
           method: 'POST',
           credentials: 'include',
@@ -81,16 +82,14 @@ export default function Home() {
   
         const userData = await userCheckResponse.json();
         console.log('User check response:', userData);
-        console.groupEnd();
-  
         if (userData.exists) {
-          console.log('✓ Existing user found:', userData.username);
+          console.log('Existing user found:', userData.username);
           setEmailMessage(`Hi ${userData.username}, please login`);
+          console.groupEnd();
           return;
         }
   
-        console.group('🔍 Prospect Check');
-        // Check if email exists in Prospects collection
+        // --- Check if email exists in the Prospects collection ---
         const prospectCheckResponse = await fetch(`${apiUrl}/api/prospects/check-email`, {
           method: 'POST',
           credentials: 'include',
@@ -102,16 +101,15 @@ export default function Home() {
   
         const prospectData = await prospectCheckResponse.json();
         console.log('Prospect check response:', prospectData);
-        console.groupEnd();
-  
         if (prospectData.exists) {
-          console.log('✓ Existing prospect found');
+          console.log('Existing prospect found');
           setEmailMessage('This email is already registered');
+          console.groupEnd();
           return;
         }
   
-        console.group('📝 New Prospect Registration');
-        // Register new prospect
+        // --- Register new prospect ---
+        console.log('Registering new prospect with email:', email);
         const response = await fetch(`${apiUrl}/api/prospects/email`, {
           method: 'POST',
           credentials: 'include',
@@ -123,35 +121,59 @@ export default function Home() {
   
         const responseData = await response.json();
         console.log('Registration response:', responseData);
-        console.groupEnd();
-  
         if (!response.ok) {
           throw new Error(responseData.message || 'Failed to save email');
         }
   
-        console.log('✔ Email saved successfully');
+        console.log('Email saved successfully');
         setEmailMessage('Email saved successfully!');
         setIsSubmitted(true);
       } else {
-        console.log('👤 Logged in user:', user);
-        setEmail(user.email || '');
-        setEmailMessage('Welcome back!');
-      }
+        // Logged-in user branch
+        console.log('Logged in user:', user);
+        
+        // Check if the currently entered email is different than what we have saved
+        if (email && email !== user.email) {
+          console.log('Updating user email to:', email);
   
+          const updateResponse = await fetch(`${apiUrl}/api/users/${user.id}/email`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+          });
+  
+          const updateData = await updateResponse.json();
+          console.log('Email update response:', updateData);
+  
+          if (!updateResponse.ok) {
+            throw new Error(updateData.error || 'Failed to update email');
+          }
+          
+          // Update local state with the new email from response
+          setEmail(updateData.user.email);
+          setEmailMessage('Email updated successfully');
+        } else {
+          // If user.email is already set or email is empty, simply greet the user or prompt for a new value
+          setEmailMessage(user.email ? 'Welcome back!' : 'Please enter your email for updates');
+        }
+      }
+      
       setTimeout(() => setEmailMessage(''), 3000);
     } catch (error) {
-      console.group('❌ Error');
+      console.group('Error during email submission');
       console.error('Email submission error:', error);
       console.trace('Error stack:');
       console.groupEnd();
-      
+  
       setEmailMessage(error instanceof Error ? error.message : 'An error occurred');
       setTimeout(() => setEmailMessage(''), 3000);
     } finally {
       console.groupEnd();
     }
   };
-  
 
   const handleDashboardClick = () => {
     router.push('/dashboard');

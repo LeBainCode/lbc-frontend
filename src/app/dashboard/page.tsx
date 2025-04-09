@@ -21,11 +21,14 @@ export default function Dashboard() {
     const checkAuthentication = async () => {
       try {
         // Verify the session with the backend
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-session`, {
-          method: "GET",
-          credentials: "include", // Include cookies in the request
-        });
-    
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-session`,
+          {
+            method: "GET",
+            credentials: "include", // Include cookies in the request
+          }
+        );
+
         if (response.ok) {
           // Fetch user data if not already loaded
           if (!user) {
@@ -75,7 +78,7 @@ export default function Dashboard() {
         <Navbar />
         <div className="container mx-auto px-6 pt-32">
           <div className="mb-1">
-            <h1 className="text-6xl font-bold text-white">
+            <h1 className="text-6xl font-bold text-[#e6e6e6]">
               Hello {user.username}
               {user.role === "admin" && (
                 <span className="text-[#BF9ACA] ml-2">(Admin)</span>

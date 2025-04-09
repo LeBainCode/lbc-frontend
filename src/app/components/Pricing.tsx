@@ -1,6 +1,6 @@
 export default function Pricing() {
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="hidden max-w-6xl mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Free Plan */}
         <div className="flex flex-col bg-[#e6e6e6] rounded-lg p-8">

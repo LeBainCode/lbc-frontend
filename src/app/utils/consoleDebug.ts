@@ -11,11 +11,11 @@ export interface DebugInfo {
 export class ConsoleDebugger {
   private static instance: ConsoleDebugger;
   private isDev: boolean;
-  private localBackendUrl = 'http://localhost:5000';
-  private renderBackendUrl = 'https://lebaincode-backend.onrender.com';
+  private localBackendUrl = "http://localhost:5000";
+  private renderBackendUrl = "https://lebaincode-backend.onrender.com";
 
   private constructor() {
-    this.isDev = process.env.NODE_ENV === 'development';
+    this.isDev = process.env.NODE_ENV === "development";
   }
 
   static getInstance() {
@@ -53,8 +53,8 @@ export class ConsoleDebugger {
 
   showUserWelcome() {
     console.log(
-      '%c' + this.userAsciiArt,
-      'color: #00ff00; font-family: monospace; font-size: 10px;'
+      "%c" + this.userAsciiArt,
+      "color: #00ff00; font-family: monospace; font-size: 10px;"
     );
   }
 
@@ -70,7 +70,7 @@ export class ConsoleDebugger {
     }
 
     // Skip localhost check if explicitly using render URL
-    if (process.env.NEXT_PUBLIC_API_URL?.includes('render')) {
+    if (process.env.NEXT_PUBLIC_API_URL?.includes("render")) {
       return this.renderBackendUrl;
     }
 
@@ -79,12 +79,12 @@ export class ConsoleDebugger {
       const timeoutId = setTimeout(() => controller.abort(), 500);
 
       const response = await fetch(`${this.localBackendUrl}/api/health`, {
-        method: 'HEAD',
+        method: "HEAD",
         signal: controller.signal,
         headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+        },
       });
 
       clearTimeout(timeoutId);
@@ -92,7 +92,7 @@ export class ConsoleDebugger {
       if (response.ok) {
         return this.localBackendUrl;
       }
-    } catch (error) {
+    } catch {
       // Silently handle the error and fallback to render backend
     }
 
@@ -103,20 +103,24 @@ export class ConsoleDebugger {
     if (!this.isDev) return;
 
     const detectedApiUrl = await this.detectBackendUrl();
-    const backendType = detectedApiUrl === this.localBackendUrl ? 'Local' : 'Render';
+    const backendType =
+      detectedApiUrl === this.localBackendUrl ? "Local" : "Render";
 
     const debugInfo = {
       ...info,
       apiUrl: detectedApiUrl,
-      backendType: backendType
+      backendType: backendType,
     };
 
     console.log(
-      '%c' + this.devAsciiArt,
-      'color: #ff0000; font-family: monospace; font-size: 10px;'
+      "%c" + this.devAsciiArt,
+      "color: #ff0000; font-family: monospace; font-size: 10px;"
     );
 
-    console.group('%c🔍 Debug Information', 'color: #ff0000; font-weight: bold;');
+    console.group(
+      "%c🔍 Debug Information",
+      "color: #ff0000; font-weight: bold;"
+    );
     console.table(debugInfo);
     console.groupEnd();
 
@@ -124,18 +128,18 @@ export class ConsoleDebugger {
   }
 
   private initializeDevShortcuts() {
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+    document.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === "D") {
         this.showDebugPanel();
       }
     });
   }
 
   private showDebugPanel() {
-    console.group('%c🛠️ Developer Tools', 'color: #ff0000; font-weight: bold;');
-    console.log('%c📡 API Status:', 'color: #00ff00', 'Connected');
-    console.log('%c🔄 Session:', 'color: #00ff00', 'Active');
-    console.log('%c⚡ Performance:', 'color: #00ff00', 'Optimal');
+    console.group("%c🛠️ Developer Tools", "color: #ff0000; font-weight: bold;");
+    console.log("%c📡 API Status:", "color: #00ff00", "Connected");
+    console.log("%c🔄 Session:", "color: #00ff00", "Active");
+    console.log("%c⚡ Performance:", "color: #00ff00", "Optimal");
     console.groupEnd();
   }
 }

@@ -1,4 +1,3 @@
-// src/app/dashboard/page.tsx
 "use client";
 
 import { useAuth } from "../context/AuthContext";
@@ -12,30 +11,52 @@ import Modules from "../components/Modules";
 import AdminPanel from "../components/AdminPanel";
 import AlertPopup from "../components/AlertPopup";
 
+// Define TypeScript interfaces
+interface Progress {
+  cModule: {
+    completed: number;
+  };
+}
+
+interface User {
+  username: string;
+  role: string;
+  email?: string;
+  progress?: Progress;
+}
+
+interface UserStats {
+  hoursCoding: number;
+  exercises: string;
+  notionsMastered: number;
+  daysLeft: number;
+}
+
+interface AuthContextType {
+  user: User | null;
+  fetchUserData: () => Promise<void>;
+}
+
 export default function Dashboard() {
-  const { user, fetchUserData } = useAuth();
+  const { user, fetchUserData } = useAuth() as AuthContextType;
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        // Verify the session with the backend
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-session`,
           {
             method: "GET",
-            credentials: "include", // Include cookies in the request
+            credentials: "include",
           }
         );
 
         if (response.ok) {
-          // Fetch user data if not already loaded
           if (!user) {
             await fetchUserData();
           }
         } else {
-          // If session is invalid, redirect to home
           router.push("/");
         }
       } catch (error) {
@@ -65,13 +86,12 @@ export default function Dashboard() {
     );
   }
 
-  const stats = {
-    hoursCoding: user?.progress?.cModule?.completed * 4 || 0,
-    exercises: `${user?.progress?.cModule?.completed * 5 || 0}+`,
-    notionsMastered: user?.progress?.cModule?.completed || 0,
-    daysLeft: 30 - (user?.progress?.cModule?.completed || 0) * 3,
+  const stats: UserStats = {
+    hoursCoding: (user.progress?.cModule?.completed || 0) * 4,
+    exercises: `${(user.progress?.cModule?.completed || 0) * 5}+`,
+    notionsMastered: user.progress?.cModule?.completed || 0,
+    daysLeft: 30 - (user.progress?.cModule?.completed || 0) * 3,
   };
-
   return (
     <>
       <main className="min-h-screen bg-[#0D1117]">
@@ -104,7 +124,7 @@ export default function Dashboard() {
           </div>
           {user.role === "admin" && <AdminPanel />}
         </div>
-        <AlertPopup hasEmail={Boolean(user?.email)} />
+        <AlertPopup hasEmail={Boolean(user.email)} />
       </main>
       <Footer />
     </>

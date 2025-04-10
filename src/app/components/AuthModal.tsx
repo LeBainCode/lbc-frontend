@@ -1,10 +1,15 @@
-// components/AuthModal.tsx
 "use client";
 import { useState, useEffect } from "react";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface LogEntry {
+  timestamp: string;
+  message: string;
+  data?: unknown;
 }
 
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
@@ -28,8 +33,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
       // Safe localStorage handling
       try {
-        const logs = JSON.parse(
-          window?.localStorage?.getItem("authModalLogs") || "[]"
+        const logs: LogEntry[] = JSON.parse(
+          window.localStorage.getItem("authModalLogs") || "[]"
         );
         logs.push({ timestamp, message, data });
         window.localStorage.setItem("authModalLogs", JSON.stringify(logs));
@@ -40,6 +45,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   // Initialize debugging on mount
+  // We want this effect to run only once on mount so we disable the exhaustive-deps rule.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     debug("Component mounted", {
       isOpen,
@@ -50,10 +57,10 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     // Display previous logs from localStorage
     const previousLogs = JSON.parse(
       localStorage.getItem("authModalLogs") || "[]"
-    );
+    ) as LogEntry[];
     if (previousLogs.length > 0) {
       console.group("[AuthModal] Previous session logs");
-      previousLogs.forEach((log: unknown) => {
+      previousLogs.forEach((log) => {
         console.log(`[${log.timestamp}]`, log.message, log.data || "");
       });
       console.groupEnd();

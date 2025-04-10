@@ -1,4 +1,3 @@
-// src/app/context/AuthContext.tsx
 "use client";
 import {
   createContext,
@@ -8,11 +7,47 @@ import {
   ReactNode,
   useCallback,
 } from "react";
-import { AuthContextType, User } from "../types/auth";
+
+// Define strict types for our context and user
+interface User {
+  id: string;
+  [key: string]: unknown;
+}
+
+interface AuthContextType {
+  user: User | null;
+  setUser: (user: User | null) => void;
+  fetchUserData: () => Promise<User | null>;
+  isLoading: boolean;
+  error: string | null;
+  logout: () => void;
+  isAuthenticated: boolean;
+}
+
+interface LogEntry {
+  timestamp: string;
+  message: string;
+  data?: unknown;
+}
+
+// Type guard for response data
+interface ResponseData {
+  status: number;
+  [key: string]: unknown;
+}
+
+const isResponseData = (data: unknown): data is ResponseData => {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "status" in data &&
+    typeof (data as ResponseData).status === "number"
+  );
+};
 
 const debug = (message: string, data?: unknown) => {
   const timestamp = new Date().toISOString();
-  if (data?.status === 401) {
+  if (isResponseData(data) && data.status === 401) {
     console.log(`[AuthContext] ${message} (Expected - User not authenticated)`);
   } else {
     console.log(`[AuthContext] ${message}`, data || "");
@@ -20,12 +55,14 @@ const debug = (message: string, data?: unknown) => {
 
   if (typeof window !== "undefined") {
     try {
-      const logs = JSON.parse(localStorage.getItem("authContextLogs") || "[]");
+      const logs = JSON.parse(
+        localStorage.getItem("authContextLogs") || "[]"
+      ) as LogEntry[];
       logs.push({ timestamp, message, data });
       // Keep only the last 50 logs
       if (logs.length > 50) logs.shift();
       localStorage.setItem("authContextLogs", JSON.stringify(logs));
-    } catch (error) {
+    } catch (error: unknown) {
       console.warn("[AuthContext] LocalStorage error:", error);
     }
   }
@@ -77,7 +114,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       );
 
-      // Handle 401 as normal non-authenticated state
       if (response.status === 401) {
         debug("User not authenticated", { status: 401 });
         setUser(null);
@@ -85,7 +121,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null;
       }
 
-      // Handle other non-200 responses as actual errors
       if (!response.ok) {
         debug("API error response", { status: response.status });
         setError(`API error: ${response.status}`);
@@ -93,20 +128,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null;
       }
 
-      const { authenticated, user } = await response.json();
-      debug("Authentication check complete", { authenticated });
+      const data = await response.json();
+      debug("Authentication check complete", {
+        authenticated: data.authenticated,
+      });
 
-      if (authenticated && user) {
-        debug("User authenticated", { userId: user.id });
-        setUser(user);
+      if (data.authenticated && data.user) {
+        debug("User authenticated", { userId: data.user.id });
+        setUser(data.user);
       } else {
         debug("No authenticated user");
         setUser(null);
       }
 
       setIsLoading(false);
-      return user;
-    } catch (error) {
+      return data.user || null;
+    } catch (error: unknown) {
       debug("Error checking authentication", error);
       setError("Failed to check authentication status");
       setIsLoading(false);

@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
 import { Prospect, RegularUser } from "@/app/types/admin";
 import UserCount from "./admin/UserCount";
-import RegularUsersTable from "./admin/RegularUsersTable";
+// import RegularUsersTable from "./admin/RegularUsersTable";
 import ProspectsTable from "./admin/ProspectsTable";
 import { Tab } from "@headlessui/react";
 import {

@@ -9,7 +9,7 @@ interface AuthModalProps {
 interface LogEntry {
   timestamp: string;
   message: string;
-  data?: unknown;
+  data?: any;
 }
 
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
@@ -17,7 +17,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [error, setError] = useState<string | null>(null);
 
   // Debug logger function
-  const debug = (message: string, data?: unknown) => {
+  const debug = (message: string, data?: any) => {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] [AuthModal] ${message}`;
 

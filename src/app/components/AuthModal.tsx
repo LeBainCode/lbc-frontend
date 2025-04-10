@@ -1,15 +1,15 @@
 "use client";
-import { useState, useEffect } from "react";
-
-interface AuthModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import { useState, useEffect, useCallback } from "react";
 
 interface LogEntry {
   timestamp: string;
   message: string;
-  data?: any;
+  data?: unknown;
+}
+
+interface AuthModalProps {
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
@@ -17,11 +17,10 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [error, setError] = useState<string | null>(null);
 
   // Debug logger function
-  const debug = (message: string, data?: any) => {
+  const debug = useCallback((message: string, data?: unknown) => {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] [AuthModal] ${message}`;
 
-    // Safe console logging
     if (typeof window !== "undefined") {
       if (data) {
         console.group(logMessage);
@@ -31,22 +30,19 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         console.log(logMessage);
       }
 
-      // Safe localStorage handling
       try {
-        const logs: LogEntry[] = JSON.parse(
+        const logs = JSON.parse(
           window.localStorage.getItem("authModalLogs") || "[]"
-        );
+        ) as LogEntry[];
         logs.push({ timestamp, message, data });
         window.localStorage.setItem("authModalLogs", JSON.stringify(logs));
       } catch (error) {
         console.warn("[AuthModal] LocalStorage not available:", error);
       }
     }
-  };
+  }, []);
 
   // Initialize debugging on mount
-  // We want this effect to run only once on mount so we disable the exhaustive-deps rule.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     debug("Component mounted", {
       isOpen,
@@ -54,13 +50,12 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       apiUrl: process.env.NEXT_PUBLIC_API_URL,
     });
 
-    // Display previous logs from localStorage
     const previousLogs = JSON.parse(
       localStorage.getItem("authModalLogs") || "[]"
     ) as LogEntry[];
     if (previousLogs.length > 0) {
       console.group("[AuthModal] Previous session logs");
-      previousLogs.forEach((log) => {
+      previousLogs.forEach((log: LogEntry) => {
         console.log(`[${log.timestamp}]`, log.message, log.data || "");
       });
       console.groupEnd();
@@ -69,9 +64,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     return () => {
       debug("Component unmounting");
     };
-  }, []);
+  }, [debug, isOpen]);
 
-  // Handle GitHub authentication
   const handleGitHubAuth = () => {
     try {
       debug("GitHub authentication initiated");
@@ -90,7 +84,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         throw new Error("Missing required configuration");
       }
 
-      // Store attempt details
       if (typeof window !== "undefined") {
         try {
           window.localStorage.setItem(
@@ -101,8 +94,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               environment: process.env.NODE_ENV,
             })
           );
-        } catch (e) {
-          console.warn("Failed to store auth attempt:", e);
+        } catch (error) {
+          console.warn("Failed to store auth attempt:", error);
         }
       }
 
@@ -119,9 +112,9 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   // Monitor state changes
   useEffect(() => {
     debug("State updated", { isLoading, error, isOpen });
-  }, [isLoading, error, isOpen]);
+  }, [debug, isLoading, error, isOpen]);
 
-  // Check API health
+  // Check API health when modal is open
   useEffect(() => {
     const checkApiHealth = async () => {
       try {
@@ -137,9 +130,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     if (isOpen) {
       checkApiHealth();
     }
-  }, [isOpen]);
+  }, [debug, isOpen]);
 
-  // Handle modal close
   const handleClose = () => {
     debug("Modal closing");
     onClose();
@@ -160,7 +152,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         }
       }}
     >
-      {/* Modal content */}
       <div className="bg-[#1F2937] p-8 rounded-lg w-96 shadow-xl">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white">Sign in</h2>

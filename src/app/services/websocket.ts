@@ -1,7 +1,7 @@
 // src/app/services/websocket.ts
 class WebSocketService {
   private socket: WebSocket | null = null;
-  private listeners: Map<string, Set<(data: any) => void>> = new Map();
+  private listeners: Map<string, Set<(data: unknown) => void>> = new Map();
 
   async connect() {
     try {

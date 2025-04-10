@@ -90,6 +90,7 @@ export default function Home() {
         if (userData.exists) {
           console.log("✓ Existing user found:", userData.username);
           setEmailMessage(`Hi ${userData.username}, please login`);
+          console.groupEnd();
           return;
         }
 

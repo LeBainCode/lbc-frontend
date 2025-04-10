@@ -43,8 +43,8 @@ export default function AlertPopup({ hasEmail }: AlertPopupProps) {
         <div className="text-gray-300 space-y-4">
           <p>
             Welcome to LeBainCode! Our platform is currently in development, and
-            while some features are not yet fully accessible, we're looking for
-            beta testers to help shape the future of our platform.
+            while some features are not yet fully accessible, we&apos;re looking
+            for beta testers to help shape the future of our platform.
           </p>
 
           <div className="bg-[#374151] p-4 rounded-lg">
@@ -92,8 +92,8 @@ export default function AlertPopup({ hasEmail }: AlertPopupProps) {
           </div>
 
           <p className="text-sm text-gray-400">
-            By becoming a beta tester, you'll get early access to new features
-            and help us improve the platform for everyone.
+            By becoming a beta tester, you&apos;ll get early access to new
+            features and help us improve the platform for everyone.
           </p>
         </div>
 

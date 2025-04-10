@@ -15,18 +15,18 @@ import LoginModal from "./components/LoginModal";
 import { ConsoleDebugger } from "./utils/consoleDebug";
 import type { DebugInfo } from "./utils/consoleDebug";
 
-interface Prospect {
-  email: string;
-  createdAt: string;
-  type?: "individual" | "organization" | "other";
-  reachedOut?: boolean;
-  comment?: string;
-}
+// interface Prospect {
+//   email: string;
+//   createdAt: string;
+//   type?: "individual" | "organization" | "other";
+//   reachedOut?: boolean;
+//   comment?: string;
+// }
 
 export default function Home() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [email, setEmail] = useState("");
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  // const [isSubmitted, setIsSubmitted] = useState(false);
   const [emailMessage, setEmailMessage] = useState("");
   const { user } = useAuth();
   const router = useRouter();

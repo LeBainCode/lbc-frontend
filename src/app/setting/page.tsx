@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { Bentham } from "next/font/google";
+// import { Bentham } from "next/font/google";
 
 export default function Settings() {
   const [selectedTab, setSelectedTab] = useState("settings");

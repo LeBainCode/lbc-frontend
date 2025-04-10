@@ -1,6 +1,11 @@
-// components/AuthModal.tsx
-'use client';
-import { useState, useEffect } from 'react';
+"use client";
+import { useState, useEffect, useCallback } from "react";
+
+interface LogEntry {
+  timestamp: string;
+  message: string;
+  data?: unknown;
+}
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -12,151 +17,160 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [error, setError] = useState<string | null>(null);
 
   // Debug logger function
-  const debug = (message: string, data?: any) => {
+  const debug = useCallback((message: string, data?: unknown) => {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] [AuthModal] ${message}`;
-    
-    // Safe console logging
-    if (typeof window !== 'undefined') {
+
+    if (typeof window !== "undefined") {
       if (data) {
         console.group(logMessage);
-        console.log('Data:', data);
+        console.log("Data:", data);
         console.groupEnd();
       } else {
         console.log(logMessage);
       }
-  
-      // Safe localStorage handling
+
       try {
-        const logs = JSON.parse(window?.localStorage?.getItem('authModalLogs') || '[]');
+        const logs = JSON.parse(
+          window.localStorage.getItem("authModalLogs") || "[]"
+        ) as LogEntry[];
         logs.push({ timestamp, message, data });
-        window.localStorage.setItem('authModalLogs', JSON.stringify(logs));
+        window.localStorage.setItem("authModalLogs", JSON.stringify(logs));
       } catch (error) {
-        console.warn('[AuthModal] LocalStorage not available:', error);
+        console.warn("[AuthModal] LocalStorage not available:", error);
       }
     }
-  };
+  }, []);
 
   // Initialize debugging on mount
   useEffect(() => {
-    debug('Component mounted', {
+    debug("Component mounted", {
       isOpen,
       environment: process.env.NODE_ENV,
-      apiUrl: process.env.NEXT_PUBLIC_API_URL
+      apiUrl: process.env.NEXT_PUBLIC_API_URL,
     });
 
-    // Display previous logs from localStorage
-    const previousLogs = JSON.parse(localStorage.getItem('authModalLogs') || '[]');
+    const previousLogs = JSON.parse(
+      localStorage.getItem("authModalLogs") || "[]"
+    ) as LogEntry[];
     if (previousLogs.length > 0) {
-      console.group('[AuthModal] Previous session logs');
-      previousLogs.forEach((log: any) => {
-        console.log(`[${log.timestamp}]`, log.message, log.data || '');
+      console.group("[AuthModal] Previous session logs");
+      previousLogs.forEach((log: LogEntry) => {
+        console.log(`[${log.timestamp}]`, log.message, log.data || "");
       });
       console.groupEnd();
     }
 
     return () => {
-      debug('Component unmounting');
+      debug("Component unmounting");
     };
-  }, []);
+  }, [debug, isOpen]);
 
-  // Handle GitHub authentication
   const handleGitHubAuth = () => {
     try {
-      debug('GitHub authentication initiated');
+      debug("GitHub authentication initiated");
       setIsLoading(true);
-  
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
-  
-      debug('Auth configuration', {
+
+      debug("Auth configuration", {
         apiUrl,
-        clientId: clientId ? 'configured' : 'missing',
-        environment: process.env.NODE_ENV
+        clientId: clientId ? "configured" : "missing",
+        environment: process.env.NODE_ENV,
       });
-  
+
       if (!apiUrl || !clientId) {
-        throw new Error('Missing required configuration');
+        throw new Error("Missing required configuration");
       }
-  
-      // Store attempt details
-      if (typeof window !== 'undefined') {
+
+      if (typeof window !== "undefined") {
         try {
-          window.localStorage.setItem('githubAuthAttempt', JSON.stringify({
-            timestamp: new Date().toISOString(),
-            apiUrl,
-            environment: process.env.NODE_ENV
-          }));
-        } catch (e) {
-          console.warn('Failed to store auth attempt:', e);
+          window.localStorage.setItem(
+            "githubAuthAttempt",
+            JSON.stringify({
+              timestamp: new Date().toISOString(),
+              apiUrl,
+              environment: process.env.NODE_ENV,
+            })
+          );
+        } catch (error) {
+          console.warn("Failed to store auth attempt:", error);
         }
       }
-  
+
       const authUrl = `${apiUrl}/api/auth/github`;
-      debug('Redirecting to auth endpoint', { authUrl });
+      debug("Redirecting to auth endpoint", { authUrl });
       window.location.href = authUrl;
-      
     } catch (error) {
-      debug('Authentication error', error);
+      debug("Authentication error", error);
       setIsLoading(false);
-      setError('Failed to initiate GitHub authentication');
+      setError("Failed to initiate GitHub authentication");
     }
   };
 
   // Monitor state changes
   useEffect(() => {
-    debug('State updated', { isLoading, error, isOpen });
-  }, [isLoading, error, isOpen]);
+    debug("State updated", { isLoading, error, isOpen });
+  }, [debug, isLoading, error, isOpen]);
 
-  // Check API health
+  // Check API health when modal is open
   useEffect(() => {
     const checkApiHealth = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         const response = await fetch(`${apiUrl}/api/auth/health`);
         const data = await response.json();
-        debug('API health check', { status: response.status, data });
+        debug("API health check", { status: response.status, data });
       } catch (error) {
-        debug('API health check failed', error);
+        debug("API health check failed", error);
       }
     };
 
     if (isOpen) {
       checkApiHealth();
     }
-  }, [isOpen]);
+  }, [debug, isOpen]);
 
-  // Handle modal close
   const handleClose = () => {
-    debug('Modal closing');
+    debug("Modal closing");
     onClose();
   };
 
   if (!isOpen) {
-    debug('Modal not rendered (closed)');
+    debug("Modal not rendered (closed)");
     return null;
   }
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          debug('Backdrop clicked');
+          debug("Backdrop clicked");
           handleClose();
         }
       }}
     >
-      {/* Modal content */}
       <div className="bg-[#1F2937] p-8 rounded-lg w-96 shadow-xl">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white">Sign in</h2>
-          <button 
+          <button
             onClick={handleClose}
             className="text-gray-400 hover:text-white"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -171,7 +185,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           onClick={handleGitHubAuth}
           disabled={isLoading}
           className={`w-full flex items-center justify-center space-x-2 
-            ${isLoading ? 'bg-gray-600' : 'bg-[#24292f] hover:bg-[#2c974b]'}
+            ${isLoading ? "bg-gray-600" : "bg-[#24292f] hover:bg-[#2c974b]"}
             text-white px-4 py-3 rounded-md transition-all duration-200 mb-4`}
         >
           {isLoading ? (

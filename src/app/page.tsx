@@ -46,7 +46,7 @@ export default function Home() {
     console.log("Initial Email:", email);
     console.log("Environment:", debugInfo.environment);
     console.groupEnd();
-  }, [user]);
+  }, [user, email]);
 
   // useEffect(() => {
   //   let timer: NodeJS.Timeout;
@@ -123,7 +123,7 @@ export default function Home() {
         // setIsSubmitted(true);
         setEmailMessage("Email saved successfully!");
       } else {
-        setEmail(user.email || "");
+        setEmail(user?.email || "");
         setEmailMessage("Welcome back!");
       }
     } catch (error) {

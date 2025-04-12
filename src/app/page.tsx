@@ -19,7 +19,7 @@ export default function Home() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  // const [isSubmitted, setIsSubmitted] = useState(false);
   const [apiUrl, setApiUrl] = useState<string>("");
 
   const { user } = useAuth();
@@ -37,6 +37,7 @@ export default function Home() {
     };
 
     setApiUrl(debugInfo.apiUrl);
+
     consoleDebugger.showUserWelcome();
     consoleDebugger.showDevConsole(debugInfo);
 
@@ -47,13 +48,13 @@ export default function Home() {
     console.groupEnd();
   }, [user]);
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (emailMessage) {
-      timer = setTimeout(() => setEmailMessage(""), 3000);
-    }
-    return () => clearTimeout(timer);
-  }, [emailMessage]);
+  // useEffect(() => {
+  //   let timer: NodeJS.Timeout;
+  //   if (emailMessage) {
+  //     timer = setTimeout(() => setEmailMessage(""), 3000);
+  //   }
+  //   return () => clearTimeout(timer);
+  // }, [emailMessage]);
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -119,7 +120,7 @@ export default function Home() {
           throw new Error(responseData.message || "Failed to save email");
         }
 
-        setIsSubmitted(true);
+        // setIsSubmitted(true);
         setEmailMessage("Email saved successfully!");
       } else {
         setEmail(user.email || "");

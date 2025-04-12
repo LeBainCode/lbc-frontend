@@ -34,11 +34,12 @@ interface UserStats {
 
 interface AuthContextType {
   user: User | null;
-  fetchUserData: () => Promise<void>;
+  fetchUserData: () => Promise<User | null>;
 }
 
 export default function Dashboard() {
   const { user, fetchUserData } = useAuth() as AuthContextType;
+  console.log(user);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {

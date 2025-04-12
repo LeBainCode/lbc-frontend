@@ -15,23 +15,15 @@ import LoginModal from "./components/LoginModal";
 import { ConsoleDebugger } from "./utils/consoleDebug";
 import type { DebugInfo } from "./utils/consoleDebug";
 
-// interface Prospect {
-//   email: string;
-//   createdAt: string;
-//   type?: "individual" | "organization" | "other";
-//   reachedOut?: boolean;
-//   comment?: string;
-// }
-
 export default function Home() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [email, setEmail] = useState("");
-  // const [isSubmitted, setIsSubmitted] = useState(false);
   const [emailMessage, setEmailMessage] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [apiUrl, setApiUrl] = useState<string>("");
+
   const { user } = useAuth();
   const router = useRouter();
-
-  const [apiUrl, setApiUrl] = useState<string>("");
 
   useEffect(() => {
     const consoleDebugger = ConsoleDebugger.getInstance();
@@ -44,9 +36,7 @@ export default function Home() {
       buildTime: new Date().toISOString(),
     };
 
-    // Store the API URL in state
     setApiUrl(debugInfo.apiUrl);
-
     consoleDebugger.showUserWelcome();
     consoleDebugger.showDevConsole(debugInfo);
 
@@ -55,7 +45,15 @@ export default function Home() {
     console.log("Initial Email:", email);
     console.log("Environment:", debugInfo.environment);
     console.groupEnd();
-  }, []);
+  }, [user]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (emailMessage) {
+      timer = setTimeout(() => setEmailMessage(""), 3000);
+    }
+    return () => clearTimeout(timer);
+  }, [emailMessage]);
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -76,87 +74,62 @@ export default function Home() {
           {
             method: "POST",
             credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email }),
           }
         );
 
         const userData = await userCheckResponse.json();
         console.log("User check response:", userData);
-        console.groupEnd();
 
         if (userData.exists) {
-          console.log("✓ Existing user found:", userData.username);
           setEmailMessage(`Hi ${userData.username}, please login`);
-          console.groupEnd();
           return;
         }
 
-        console.group("🔍 Prospect Check");
-        // Check if email exists in Prospects collection
         const prospectCheckResponse = await fetch(
           `${apiUrl}/api/prospects/check-email`,
           {
             method: "POST",
             credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email }),
           }
         );
 
         const prospectData = await prospectCheckResponse.json();
         console.log("Prospect check response:", prospectData);
-        console.groupEnd();
 
         if (prospectData.exists) {
-          console.log("✓ Existing prospect found");
           setEmailMessage("This email is already registered");
           return;
         }
 
-        console.group("📝 New Prospect Registration");
-        // Register new prospect
         const response = await fetch(`${apiUrl}/api/prospects/email`, {
           method: "POST",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
         });
 
         const responseData = await response.json();
         console.log("Registration response:", responseData);
-        console.groupEnd();
 
         if (!response.ok) {
           throw new Error(responseData.message || "Failed to save email");
         }
 
-        console.log("✔ Email saved successfully");
-        setEmailMessage("Email saved successfully!");
         setIsSubmitted(true);
+        setEmailMessage("Email saved successfully!");
       } else {
-        console.log("👤 Logged in user:", user);
         setEmail(user.email || "");
         setEmailMessage("Welcome back!");
       }
-
-      setTimeout(() => setEmailMessage(""), 3000);
     } catch (error) {
-      console.group("❌ Error");
       console.error("Email submission error:", error);
-      console.trace("Error stack:");
-      console.groupEnd();
-
       setEmailMessage(
         error instanceof Error ? error.message : "An error occurred"
       );
-      setTimeout(() => setEmailMessage(""), 3000);
     } finally {
       console.groupEnd();
     }
@@ -177,8 +150,9 @@ export default function Home() {
     <>
       <main className="min-h-screen bg-[#0D1117]">
         <Navbar />
+
         <div
-          className="container mx-auto mb-20 px-6 pt-32 flex justify-center "
+          className="container mx-auto mb-20 px-6 pt-32 flex justify-center"
           id="/"
         >
           <div className="max-w-2xl">
@@ -188,84 +162,61 @@ export default function Home() {
               important. This something has many uses and is made of 100%
               recycled material.
             </p>
+
             <div className="flex gap-3">
+              <form
+                onSubmit={handleEmailSubmit}
+                className={`flex relative ${
+                  user ? "flex-1 max-w-[440px]" : ""
+                }`}
+              >
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={
+                    user?.email
+                      ? `Any updates will be sent to ${user.email}`
+                      : "Enter your email address"
+                  }
+                  className="w-[240px] px-3 py-2 bg-transparent rounded-l text-sm border border-gray-700
+                    focus:outline-none focus:border-[#BF9ACA] text-[#BF9ACA]
+                    placeholder-gray-500 transition-all duration-300"
+                />
+                <button
+                  type="submit"
+                  className="bg-[#BF9ACA] px-4 py-2 rounded-r text-sm hover:bg-[#7C3AED] transition-colors"
+                >
+                  Submit
+                </button>
+                {emailMessage && (
+                  <div className="absolute -top-8 left-0 bg-[#BF9ACA] text-white px-3 py-1 rounded text-sm animate-fade-in-out">
+                    {emailMessage}
+                  </div>
+                )}
+              </form>
+
               {!user ? (
-                <form onSubmit={handleEmailSubmit} className="flex relative">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email address"
-                    className={`w-[240px] px-3 py-2 bg-transparent rounded-l text-sm border border-gray-700
-                            focus:outline-none focus:border-[#BF9ACA] text-[#BF9ACA]
-                            placeholder-gray-500 transition-all duration-300`}
-                  />
-                  <button
-                    type="submit"
-                    className="bg-[#BF9ACA] px-4 py-2 rounded-r text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap"
-                  >
-                    Submit
-                  </button>
-                  {emailMessage && (
-                    <div className="absolute -top-8 left-0 bg-[#BF9ACA] text-white px-3 py-1 rounded text-sm animate-fade-in-out">
-                      {emailMessage}
-                    </div>
-                  )}
+                <>
                   <button
                     onClick={handleGitHubSignIn}
                     className="ml-2 bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap"
                   >
                     Sign in through GitHub
                   </button>
-                </form>
-              ) : (
-                <form
-                  onSubmit={handleEmailSubmit}
-                  className="flex flex-1 max-w-[440px] relative"
-                >
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={
-                      user.email
-                        ? `Any updates will be sent to ${user.email}`
-                        : "Enter your email address for updates, no spam promise"
-                    }
-                    className={`flex-1 px-3 py-2 bg-transparent rounded-l text-sm border border-gray-700
-                            focus:outline-none focus:border-[#BF9ACA] text-[#BF9ACA]
-                            placeholder-gray-500 transition-all duration-300`}
-                  />
                   <button
-                    type="submit"
-                    className="bg-[#BF9ACA] px-4 py-2 rounded-r text-sm hover:bg-[#7C3AED] transition-colors"
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
                   >
-                    Submit
+                    Organization Login <span className="text-gray-400">→</span>
                   </button>
-                  {emailMessage && (
-                    <div className="absolute -top-8 left-0 bg-[#BF9ACA] text-white px-3 py-1 rounded text-sm animate-fade-in-out">
-                      {emailMessage}
-                    </div>
-                  )}
-                </form>
-              )}
-              {user ? (
-                // Dashboard button for logged-in users
+                </>
+              ) : (
                 <button
                   onClick={handleDashboardClick}
                   className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
                 >
-                  Dashboard
-                  <span className="text-gray-400">→</span>
-                </button>
-              ) : (
-                // Organization Login button for non-logged-in users
-                <button
-                  onClick={() => setIsLoginModalOpen(true)}
-                  className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
-                >
-                  Organization Login
-                  <span className="text-gray-400">→</span>
+                  Dashboard <span className="text-gray-400">→</span>
                 </button>
               )}
             </div>
@@ -298,6 +249,7 @@ export default function Home() {
           <Contact />
         </div>
       </main>
+
       <Footer />
       <LoginModal
         isOpen={isLoginModalOpen}

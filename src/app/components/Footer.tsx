@@ -3,14 +3,14 @@ export default function Footer() {
     <>
       {/* Newsletter Section - Outside Footer */}
       <div className="bg-[#0D1117] pt-16 pb-16">
-        <div className="container mx-auto px-6">
+        <div className="container sm:w-[90vw] md:w-[80vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto px-6">
           <h3 className="text-white text-sm font-medium mb-1">
             Subscribe to our newsletter
           </h3>
           <p className="text-gray-500 text-sm mb-4">
             Get product updates, company news, and more.
           </p>
-          <button className="border-2 border-[#252525] text-sm text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors">
+          <button className="w-full sm:w-auto border-2 border-[#252525] text-sm text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors">
             Subscribe
           </button>
         </div>
@@ -19,7 +19,7 @@ export default function Footer() {
       {/* Footer */}
       <footer className="w-full bg-[#161B22] py-6">
         <div className="container mx-auto px-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
             <div className="flex items-center gap-6 text-xs text-gray-500">
               <span>© 2025 Le Bain Code, Inc.</span>
               <a href="#" className="hover:text-gray-400">

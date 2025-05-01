@@ -1,29 +1,36 @@
-// src/app/auth/callback/page.tsx
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const AuthCallback = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const handleAuthentication = async () => {
+    const checkSession = async () => {
       try {
-        // Redirect to the dashboard after the backend sets the cookie
+        const res = await fetch(
+          "https://lebaincode-backend.onrender.com/api/auth/me",
+          {
+            credentials: "include", // essentiel pour les cookies HttpOnly
+          }
+        );
+
+        if (!res.ok) throw new Error("Not authenticated");
+
         router.push("/dashboard");
-      } catch (error) {
-        console.error("Error during authentication:", error);
+      } catch (err) {
+        console.error("Session check failed:", err);
         router.push("/login");
       }
     };
 
-    handleAuthentication();
+    checkSession();
   }, [router]);
 
   return (
     <div className="min-h-screen bg-[#111827] flex items-center justify-center">
-      <p className="text-white">Processing authentication...</p>
+      <p className="text-white">Checking session...</p>
     </div>
   );
 };

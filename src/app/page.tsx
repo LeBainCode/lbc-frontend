@@ -217,26 +217,26 @@ export default function Home() {
         </div>
 
         <div
-          className="container mx-auto px-6 mt-32 flex justify-center"
+          className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32"
           id="rules"
         >
           <Rules />
         </div>
 
-        <div className="container mx-auto px-6 mt-32 mb-20 flex justify-center">
+        <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32">
           <AddOns />
         </div>
 
-        <div className="container mx-auto px-6 mt-32 mb-20 flex justify-center">
+        <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32">
           <Pricing />
         </div>
 
-        <div className="container mx-auto px-6 mt-32 mb-20 flex justify-center">
+        <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32">
           <FAQ />
         </div>
 
         <div
-          className="container mx-auto px-6 mt-32 pb-32 flex justify-center"
+          className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32"
           id="contact"
         >
           <Contact />

@@ -433,7 +433,7 @@ export default function AdminPanel() {
                     ${
                       selected
                         ? "bg-indigo-500 text-white shadow-lg"
-                        : "text-gray-400 hover:text-white hover:bg-gray-700"
+                        : "text-gray-400 hover:text-[#252525] hover:bg-[#e5e5e5]"
                     }
                     focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800
                   `}

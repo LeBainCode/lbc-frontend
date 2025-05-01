@@ -10,7 +10,7 @@ const AuthCallback = () => {
     const checkAuth = async () => {
       try {
         const res = await fetch(
-          "https://lebaincode-backend.onrender.com/api/auth/user/profile",
+          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/check`,
           {
             method: "GET",
             credentials: "include", // Important pour envoyer les cookies

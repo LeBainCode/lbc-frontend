@@ -7,30 +7,36 @@ const AuthCallback = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const checkSession = async () => {
+    const checkAuth = async () => {
       try {
         const res = await fetch(
-          "https://lebaincode-backend.onrender.com/api/auth/me",
+          "https://lebaincode-backend.onrender.com/api/auth/user/profile",
           {
-            credentials: "include", // essentiel pour les cookies HttpOnly
+            method: "GET",
+            credentials: "include", // Important pour envoyer les cookies
           }
         );
 
-        if (!res.ok) throw new Error("Not authenticated");
+        if (!res.ok) {
+          throw new Error("Utilisateur non authentifié");
+        }
+
+        const user = await res.json();
+        console.log("Utilisateur connecté :", user);
 
         router.push("/dashboard");
       } catch (err) {
-        console.error("Session check failed:", err);
+        console.error("Erreur lors de la vérification de session :", err);
         router.push("/login");
       }
     };
 
-    checkSession();
+    checkAuth();
   }, [router]);
 
   return (
     <div className="min-h-screen bg-[#111827] flex items-center justify-center">
-      <p className="text-white">Checking session...</p>
+      <p className="text-white">Connexion en cours...</p>
     </div>
   );
 };

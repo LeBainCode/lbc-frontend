@@ -67,10 +67,10 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   }, [debug, isOpen]);
 
   const handleGitHubAuth = () => {
-    try {
-      debug("GitHub authentication initiated");
-      setIsLoading(true);
+    debug("GitHub authentication initiated");
+    setIsLoading(true);
 
+    try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
 
@@ -101,7 +101,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
       const authUrl = `${apiUrl}/api/auth/github`;
       debug("Redirecting to auth endpoint", { authUrl });
-      window.location.href = authUrl;
+      window.location.href = authUrl; // <-- Redirection standard vers ton backend
     } catch (error) {
       debug("Authentication error", error);
       setIsLoading(false);

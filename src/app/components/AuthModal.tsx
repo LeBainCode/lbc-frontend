@@ -67,10 +67,10 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   }, [debug, isOpen]);
 
   const handleGitHubAuth = () => {
-    debug("GitHub authentication initiated");
-    setIsLoading(true);
-
     try {
+      debug("GitHub authentication initiated");
+      setIsLoading(true);
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
 
@@ -84,6 +84,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         throw new Error("Missing required configuration");
       }
 
+      // Facultatif : log l’auth tentative
       if (typeof window !== "undefined") {
         try {
           window.localStorage.setItem(
@@ -99,9 +100,10 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         }
       }
 
-      const authUrl = `${apiUrl}/api/auth/github`;
-      debug("Redirecting to auth endpoint", { authUrl });
-      window.location.href = authUrl; // <-- Redirection standard vers ton backend
+      // ✅ Redirection vers backend
+      const redirectUrl = `${apiUrl}/auth/github`;
+      debug("Redirecting to backend GitHub auth", { redirectUrl });
+      window.location.href = redirectUrl;
     } catch (error) {
       debug("Authentication error", error);
       setIsLoading(false);

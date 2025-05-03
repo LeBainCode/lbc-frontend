@@ -4,7 +4,7 @@
 
 :root {
   --foreground-rgb: 255, 255, 255;
-  /* --background-rgb: 17, 24, 39; */
+  --background-rgb: 13, 17, 23;
 }
 html {
   scroll-behavior: smooth; /* Rajout smooth a voir avec Dan*/

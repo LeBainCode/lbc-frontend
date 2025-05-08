@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
+import LoginModal from "../LoginModal";
+
 import { ConsoleDebugger } from "../../utils/consoleDebug";
 import type { DebugInfo } from "../../utils/consoleDebug";
 
 export default function Hero() {
   const [email, setEmail] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [apiUrl, setApiUrl] = useState<string>("");
 
   const { user } = useAuth();
@@ -128,68 +131,74 @@ export default function Hero() {
   };
 
   return (
-    <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto p-0">
-      <h1 className="text-6xl font-bold text-white mb-6">Le Bain Code</h1>
-      <p className="text-gray-400 text-base mb-8 max-w-md leading-relaxed">
-        This is a paragraph with more information about something important.
-        This something has many uses and is made of 100% recycled material.
-      </p>
+    <>
+      <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto p-0">
+        <h1 className="text-6xl font-bold text-white mb-6">Le Bain Code</h1>
+        <p className="text-gray-400 text-base mb-8 max-w-md leading-relaxed">
+          This is a paragraph with more information about something important.
+          This something has many uses and is made of 100% recycled material.
+        </p>
 
-      <div className="flex gap-3">
-        <form
-          onSubmit={handleEmailSubmit}
-          className={`flex relative ${user ? "flex-1 max-w-[440px]" : ""}`}
-        >
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={
-              user?.email
-                ? `Any updates will be sent to ${user.email}`
-                : "Enter your email address"
-            }
-            className="w-[240px] px-3 py-2 bg-transparent rounded-l text-sm border border-gray-700
+        <div className="flex gap-3">
+          <form
+            onSubmit={handleEmailSubmit}
+            className={`flex relative ${user ? "flex-1 max-w-[440px]" : ""}`}
+          >
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={
+                user?.email
+                  ? `Any updates will be sent to ${user.email}`
+                  : "Enter your email address"
+              }
+              className="w-[240px] px-3 py-2 bg-transparent rounded-l text-sm border border-gray-700
                 focus:outline-none focus:border-[#BF9ACA] text-[#BF9ACA]
                 placeholder-gray-500 transition-all duration-300"
-          />
-          <button
-            type="submit"
-            className="bg-[#BF9ACA] px-4 py-2 rounded-r text-sm hover:bg-[#7C3AED] transition-colors"
-          >
-            Submit
-          </button>
-          {emailMessage && (
-            <div className="absolute -top-8 left-0 bg-[#BF9ACA] text-white px-3 py-1 rounded text-sm animate-fade-in-out">
-              {emailMessage}
-            </div>
-          )}
-        </form>
-
-        {!user ? (
-          <>
+            />
             <button
-              onClick={handleGitHubSignIn}
-              className="ml-2 bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap"
+              type="submit"
+              className="bg-[#BF9ACA] px-4 py-2 rounded-r text-sm hover:bg-[#7C3AED] transition-colors"
             >
-              Sign in through GitHub
+              Submit
             </button>
+            {emailMessage && (
+              <div className="absolute -top-8 left-0 bg-[#BF9ACA] text-white px-3 py-1 rounded text-sm animate-fade-in-out">
+                {emailMessage}
+              </div>
+            )}
+          </form>
+
+          {!user ? (
+            <>
+              <button
+                onClick={handleGitHubSignIn}
+                className="ml-2 bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap"
+              >
+                Sign in through GitHub
+              </button>
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+              >
+                Organization Login <span className="text-gray-400">→</span>
+              </button>
+            </>
+          ) : (
             <button
-              onClick={() => setIsLoginModalOpen(true)}
+              onClick={handleDashboardClick}
               className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
             >
-              Organization Login <span className="text-gray-400">→</span>
+              Dashboard <span className="text-gray-400">→</span>
             </button>
-          </>
-        ) : (
-          <button
-            onClick={handleDashboardClick}
-            className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
-          >
-            Dashboard <span className="text-gray-400">→</span>
-          </button>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
+    </>
   );
 }

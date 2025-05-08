@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
-import LoginModal from "../LoginModal";
+import LoginModal from "./LoginModal";
 
 import { ConsoleDebugger } from "../../utils/consoleDebug";
 import type { DebugInfo } from "../../utils/consoleDebug";

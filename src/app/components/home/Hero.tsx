@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
-import LoginModal from "../components/LoginModal";
-import { ConsoleDebugger } from "../utils/consoleDebug";
-import type { DebugInfo } from "../utils/consoleDebug";
+import LoginModal from "../LoginModal";
+import { ConsoleDebugger } from "../../utils/consoleDebug";
+import type { DebugInfo } from "../../utils/consoleDebug";
 
 export default function Hero() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -130,7 +130,7 @@ export default function Hero() {
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto p-0">
       <h1 className="text-6xl font-bold text-white mb-6">Le Bain Code</h1>
       <p className="text-gray-400 text-base mb-8 max-w-md leading-relaxed">
         This is a paragraph with more information about something important.

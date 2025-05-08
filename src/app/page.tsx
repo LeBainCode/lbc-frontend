@@ -140,7 +140,7 @@ export default function Home() {
   return (
     <>
       <main className="min-h-screen bg-[#0D1117]">
-        <header className="bg-[#24292f] flex justify-between items-center p-4 px-6">
+        <header className="bg-[#24292f]">
           <Navbar />
         </header>
 

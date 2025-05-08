@@ -52,7 +52,7 @@ export default function Navbar() {
   };
   return (
     <>
-      <nav className="bg-[#24292f] flex justify-between items-center p-4 px-6">
+      <nav className="flex justify-between items-center p-4 px-6">
         <div className="flex items-center space-x-6">
           <Image
             src="/images/logo.png"

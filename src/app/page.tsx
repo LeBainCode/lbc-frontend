@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "./context/AuthContext";
 import { useRouter } from "next/navigation";
 import Navbar from "./components/Navbar";
+import Hero from "./components/Hero";
 import Rules from "./components/Rules";
 import AddOns from "./components/AddOns";
 import Pricing from "./components/Pricing";
@@ -139,81 +140,13 @@ export default function Home() {
 
   return (
     <>
+      <header className="bg-[#24292f]">
+        <Navbar />
+      </header>
+
       <main className="min-h-screen bg-[#0D1117]">
-        <header className="bg-[#24292f]">
-          <Navbar />
-        </header>
-
-        <div
-          className="container mx-auto mb-20 px-6 pt-32 flex justify-center"
-          id="/"
-        >
-          <div className="max-w-2xl">
-            <h1 className="text-6xl font-bold text-white mb-6">Le Bain Code</h1>
-            <p className="text-gray-400 text-base mb-8 max-w-md leading-relaxed">
-              This is a paragraph with more information about something
-              important. This something has many uses and is made of 100%
-              recycled material.
-            </p>
-
-            <div className="flex gap-3">
-              <form
-                onSubmit={handleEmailSubmit}
-                className={`flex relative ${
-                  user ? "flex-1 max-w-[440px]" : ""
-                }`}
-              >
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={
-                    user?.email
-                      ? `Any updates will be sent to ${user.email}`
-                      : "Enter your email address"
-                  }
-                  className="w-[240px] px-3 py-2 bg-transparent rounded-l text-sm border border-gray-700
-                    focus:outline-none focus:border-[#BF9ACA] text-[#BF9ACA]
-                    placeholder-gray-500 transition-all duration-300"
-                />
-                <button
-                  type="submit"
-                  className="bg-[#BF9ACA] px-4 py-2 rounded-r text-sm hover:bg-[#7C3AED] transition-colors"
-                >
-                  Submit
-                </button>
-                {emailMessage && (
-                  <div className="absolute -top-8 left-0 bg-[#BF9ACA] text-white px-3 py-1 rounded text-sm animate-fade-in-out">
-                    {emailMessage}
-                  </div>
-                )}
-              </form>
-
-              {!user ? (
-                <>
-                  <button
-                    onClick={handleGitHubSignIn}
-                    className="ml-2 bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap"
-                  >
-                    Sign in through GitHub
-                  </button>
-                  <button
-                    onClick={() => setIsLoginModalOpen(true)}
-                    className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
-                  >
-                    Organization Login <span className="text-gray-400">→</span>
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={handleDashboardClick}
-                  className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
-                >
-                  Dashboard <span className="text-gray-400">→</span>
-                </button>
-              )}
-            </div>
-          </div>
+        <div className="container mx-auto mb-20 px-6 pt-32" id="/">
+          <Hero />
         </div>
 
         <div
@@ -223,22 +156,19 @@ export default function Home() {
           <Rules />
         </div>
 
-        <div className="container mx-auto px-6 mt-32 mb-20 flex justify-center">
+        <div className="container mx-auto px-6 mt-32 mb-20">
           <AddOns />
         </div>
 
-        <div className="container mx-auto px-6 mt-32 mb-20 flex justify-center">
+        <div className="container mx-auto px-6 mt-32 mb-20">
           <Pricing />
         </div>
 
-        <div className="container mx-auto px-6 mt-32 mb-20 flex justify-center">
+        <div className="container mx-auto px-6 mt-32 mb-20">
           <FAQ />
         </div>
 
-        <div
-          className="container mx-auto px-6 mt-32 pb-32 flex justify-center"
-          id="contact"
-        >
+        <div className="container mx-auto px-6 mt-32 pb-32" id="contact">
           <Contact />
         </div>
       </main>

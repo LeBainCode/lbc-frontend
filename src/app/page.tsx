@@ -140,27 +140,28 @@ export default function Home() {
   return (
     <>
       <main className="min-h-screen bg-[#0D1117]">
-        <Navbar />
+        <header className="bg-[#24292f] flex justify-between items-center p-4 px-6">
+          <Navbar />
+        </header>
 
         <div
-          className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32"
+          className="container mx-auto mb-20 px-6 pt-32 flex justify-center"
           id="/"
         >
-          <div className="max-w-2xl w-full">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">
-              Le Bain Code
-            </h1>
+          <div className="max-w-2xl">
+            <h1 className="text-6xl font-bold text-white mb-6">Le Bain Code</h1>
             <p className="text-gray-400 text-base mb-8 max-w-md leading-relaxed">
               This is a paragraph with more information about something
               important. This something has many uses and is made of 100%
               recycled material.
             </p>
 
-            <div className="flex flex-col md:flex-row flex-wrap gap-3">
-              {/* Formulaire email */}
+            <div className="flex gap-3">
               <form
                 onSubmit={handleEmailSubmit}
-                className={`flex flex-1 relative w-full md:max-w-[440px]`}
+                className={`flex relative ${
+                  user ? "flex-1 max-w-[440px]" : ""
+                }`}
               >
                 <input
                   type="email"
@@ -171,13 +172,13 @@ export default function Home() {
                       ? `Any updates will be sent to ${user.email}`
                       : "Enter your email address"
                   }
-                  className="w-full px-3 py-2 bg-transparent rounded-l text-sm border border-gray-700
-            focus:outline-none focus:border-[#BF9ACA] text-[#BF9ACA]
-            placeholder-gray-500 transition-all duration-300"
+                  className="w-[240px] px-3 py-2 bg-transparent rounded-l text-sm border border-gray-700
+                    focus:outline-none focus:border-[#BF9ACA] text-[#BF9ACA]
+                    placeholder-gray-500 transition-all duration-300"
                 />
                 <button
                   type="submit"
-                  className="bg-[#BF9ACA] px-4 py-2 rounded-r text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap"
+                  className="bg-[#BF9ACA] px-4 py-2 rounded-r text-sm hover:bg-[#7C3AED] transition-colors"
                 >
                   Submit
                 </button>
@@ -188,18 +189,17 @@ export default function Home() {
                 )}
               </form>
 
-              {/* Boutons supplémentaires */}
               {!user ? (
                 <>
                   <button
                     onClick={handleGitHubSignIn}
-                    className="bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap w-full md:w-auto"
+                    className="ml-2 bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap"
                   >
                     Sign in through GitHub
                   </button>
                   <button
                     onClick={() => setIsLoginModalOpen(true)}
-                    className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap w-full md:w-auto"
+                    className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
                   >
                     Organization Login <span className="text-gray-400">→</span>
                   </button>
@@ -207,7 +207,7 @@ export default function Home() {
               ) : (
                 <button
                   onClick={handleDashboardClick}
-                  className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap w-full md:w-auto"
+                  className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
                 >
                   Dashboard <span className="text-gray-400">→</span>
                 </button>
@@ -217,26 +217,26 @@ export default function Home() {
         </div>
 
         <div
-          className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32"
+          className="container mx-auto px-6 mt-32 flex justify-center"
           id="rules"
         >
           <Rules />
         </div>
 
-        <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32">
+        <div className="container mx-auto px-6 mt-32 mb-20 flex justify-center">
           <AddOns />
         </div>
 
-        <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32">
+        <div className="container mx-auto px-6 mt-32 mb-20 flex justify-center">
           <Pricing />
         </div>
 
-        <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32">
+        <div className="container mx-auto px-6 mt-32 mb-20 flex justify-center">
           <FAQ />
         </div>
 
         <div
-          className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32"
+          className="container mx-auto px-6 mt-32 pb-32 flex justify-center"
           id="contact"
         >
           <Contact />

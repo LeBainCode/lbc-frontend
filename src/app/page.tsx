@@ -1,7 +1,7 @@
 // src/app/page.tsx
 "use client";
 
-import { useState } from "react";
+// import { useState } from "react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/home/Hero";
 import Rules from "./components/home/Rules";
@@ -10,11 +10,8 @@ import Pricing from "./components/home/Pricing";
 import FAQ from "./components/home/FAQ";
 import Contact from "./components/home/Contact";
 import Footer from "./components/Footer";
-import LoginModal from "./components/LoginModal";
 
 export default function Home() {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-
   return (
     <>
       <header className="bg-[#24292f]">
@@ -48,10 +45,6 @@ export default function Home() {
       </main>
 
       <Footer />
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-      />
     </>
   );
 }

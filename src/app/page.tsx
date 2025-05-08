@@ -5,11 +5,12 @@ import { useState, useEffect } from "react";
 import { useAuth } from "./context/AuthContext";
 import { useRouter } from "next/navigation";
 import Navbar from "./components/Navbar";
-import Rules from "./components/Rules";
-import AddOns from "./components/AddOns";
-import Pricing from "./components/Pricing";
-import FAQ from "./components/FAQ";
-import Contact from "./components/Contact";
+import Hero from "./components/home/Hero";
+import Rules from "./components/home/Rules";
+import AddOns from "./components/home/AddOns";
+import Pricing from "./components/home/Pricing";
+import FAQ from "./components/home/FAQ";
+import Contact from "./components/home/Contact";
 import Footer from "./components/Footer";
 import LoginModal from "./components/LoginModal";
 import { ConsoleDebugger } from "./utils/consoleDebug";
@@ -47,198 +48,34 @@ export default function Home() {
     console.groupEnd();
   }, [user, email]);
 
-  const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    console.group("📧 Email Submission");
-    console.log("Starting email submission process", {
-      email,
-      isLoggedIn: !!user,
-      timestamp: new Date().toISOString(),
-    });
-
-    try {
-      console.log("Using API URL:", apiUrl);
-
-      if (!user) {
-        const userCheckResponse = await fetch(
-          `${apiUrl}/api/users/check-email`,
-          {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
-          }
-        );
-
-        const userData = await userCheckResponse.json();
-        console.log("User check response:", userData);
-
-        if (userData.exists) {
-          setEmailMessage(`Hi ${userData.username}, please login`);
-          return;
-        }
-
-        const prospectCheckResponse = await fetch(
-          `${apiUrl}/api/prospects/check-email`,
-          {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
-          }
-        );
-
-        const prospectData = await prospectCheckResponse.json();
-        console.log("Prospect check response:", prospectData);
-
-        if (prospectData.exists) {
-          setEmailMessage("This email is already registered");
-          return;
-        }
-
-        const response = await fetch(`${apiUrl}/api/prospects/email`, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
-
-        const responseData = await response.json();
-        console.log("Registration response:", responseData);
-
-        if (!response.ok) {
-          throw new Error(responseData.message || "Failed to save email");
-        }
-
-        setEmailMessage("Email saved successfully!");
-      } else if (typeof user.email === "string") {
-        setEmail(user.email);
-        setEmailMessage("Welcome back!");
-      }
-    } catch (error) {
-      console.error("Email submission error:", error);
-      setEmailMessage(
-        error instanceof Error ? error.message : "An error occurred"
-      );
-    } finally {
-      console.groupEnd();
-    }
-  };
-
-  const handleDashboardClick = () => {
-    router.push("/dashboard");
-  };
-
-  const handleGitHubSignIn = () => {
-    window.location.href =
-      process.env.NODE_ENV === "production"
-        ? "https://lebaincode-backend.onrender.com/api/auth/github"
-        : "http://localhost:5000/api/auth/github";
-  };
-
   return (
     <>
-      <main className="min-h-screen bg-[#0D1117]">
+      <header className="bg-[#24292f]">
         <Navbar />
+      </header>
 
-        <div
-          className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32"
-          id="/"
-        >
-          <div className="max-w-2xl w-full">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">
-              Le Bain Code
-            </h1>
-            <p className="text-gray-400 text-base mb-8 max-w-md leading-relaxed">
-              This is a paragraph with more information about something
-              important. This something has many uses and is made of 100%
-              recycled material.
-            </p>
-
-            <div className="flex flex-col md:flex-row flex-wrap gap-3">
-              {/* Formulaire email */}
-              <form
-                onSubmit={handleEmailSubmit}
-                className={`flex flex-1 relative w-full md:max-w-[440px]`}
-              >
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={
-                    user?.email
-                      ? `Any updates will be sent to ${user.email}`
-                      : "Enter your email address"
-                  }
-                  className="w-full px-3 py-2 bg-transparent rounded-l text-sm border border-gray-700
-            focus:outline-none focus:border-[#BF9ACA] text-[#BF9ACA]
-            placeholder-gray-500 transition-all duration-300"
-                />
-                <button
-                  type="submit"
-                  className="bg-[#BF9ACA] px-4 py-2 rounded-r text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap"
-                >
-                  Submit
-                </button>
-                {emailMessage && (
-                  <div className="absolute -top-8 left-0 bg-[#BF9ACA] text-white px-3 py-1 rounded text-sm animate-fade-in-out">
-                    {emailMessage}
-                  </div>
-                )}
-              </form>
-
-              {/* Boutons supplémentaires */}
-              {!user ? (
-                <>
-                  <button
-                    onClick={handleGitHubSignIn}
-                    className="bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap w-full md:w-auto"
-                  >
-                    Sign in through GitHub
-                  </button>
-                  <button
-                    onClick={() => setIsLoginModalOpen(true)}
-                    className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap w-full md:w-auto"
-                  >
-                    Organization Login <span className="text-gray-400">→</span>
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={handleDashboardClick}
-                  className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap w-full md:w-auto"
-                >
-                  Dashboard <span className="text-gray-400">→</span>
-                </button>
-              )}
-            </div>
-          </div>
+      <main className="min-h-screen bg-[#0D1117] flex flex-col justify-center align-middle">
+        <div className="container mb-20 pt-32" id="/">
+          <Hero />
         </div>
 
-        <div
-          className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32"
-          id="rules"
-        >
+        <div className="container mt-32" id="rules">
           <Rules />
         </div>
 
-        <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32">
+        <div className="container mt-32 mb-20">
           <AddOns />
         </div>
 
-        <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32">
+        <div className="container mt-32 mb-20">
           <Pricing />
         </div>
 
-        <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32">
+        <div className="container mt-32 mb-20">
           <FAQ />
         </div>
 
-        <div
-          className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto mb-20 px-6 pt-32"
-          id="contact"
-        >
+        <div className="container mt-32 pb-32" id="contact">
           <Contact />
         </div>
       </main>

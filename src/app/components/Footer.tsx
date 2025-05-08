@@ -1,18 +1,65 @@
+import React, { useState } from "react";
+
 export default function Footer() {
+  const [email, setEmail] = useState("");
   return (
     <>
       {/* Newsletter Section - Outside Footer */}
-      <div className="bg-[#0D1117] pt-16 pb-16">
-        <div className="container sm:w-[90vw] md:w-[80vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto px-6">
+
+      <div className="bg-[#0D1117] pt-16 pb-16 rounded shadow">
+        <div className="sm:w-[90vw] md:w-[80vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto px-6">
           <h3 className="text-white text-sm font-medium mb-1">
             Subscribe to our newsletter
           </h3>
           <p className="text-gray-500 text-sm mb-4">
             Get product updates, company news, and more.
           </p>
-          <button className="w-full sm:w-auto border-2 border-[#252525] text-sm text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors">
-            Subscribe
-          </button>
+
+          <form
+            action="https://app.us9.list-manage.com/subscribe/post?u=4e2694f4e10d31ab47bffbbe1&amp;id=75d790a0aa&amp;f_id=00e957e1f0"
+            method="POST"
+            target="_blank"
+            noValidate
+          >
+            <label htmlFor="mce-EMAIL" className="block mb-2">
+              Email Address <span className="text-red-500">*</span>
+            </label>
+
+            <input
+              type="email"
+              name="EMAIL"
+              id="mce-EMAIL"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="example.email@gmail.com"
+              className="w-[240px] px-3 py-2 bg-transparent rounded-l text-sm border border-gray-700
+              focus:outline-none focus:border-[#BF9ACA] text-[#BF9ACA]
+              placeholder-gray-500 transition-all duration-300"
+            />
+
+            {/* Champ caché anti-bots */}
+            <div
+              style={{ position: "absolute", left: "-5000px" }}
+              aria-hidden="true"
+            >
+              <input
+                type="text"
+                name="b_4e2694f4e10d31ab47bffbbe1_75d790a0aa"
+                tabIndex={-1}
+                defaultValue=""
+              />
+            </div>
+
+            <button
+              type="submit"
+              name="subscribe"
+              id="mc-embedded-subscribe"
+              className="bg-[#BF9ACA] px-4 py-2 rounded-r text-sm hover:bg-[#7C3AED] transition-colors"
+            >
+              Subscribe
+            </button>
+          </form>
         </div>
       </div>
 

@@ -3,12 +3,10 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
-import LoginModal from "../LoginModal";
 import { ConsoleDebugger } from "../../utils/consoleDebug";
 import type { DebugInfo } from "../../utils/consoleDebug";
 
 export default function Hero() {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const [apiUrl, setApiUrl] = useState<string>("");

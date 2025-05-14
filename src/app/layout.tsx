@@ -5,7 +5,7 @@ import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
 import { DebugInitializer } from "./components/DebugInitializer";
 import { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics, type BeforeSendEvent } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
 

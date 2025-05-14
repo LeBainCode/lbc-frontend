@@ -33,13 +33,13 @@ export default function FAQ() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto p-0">
       <h2 className="text-4xl font-bold text-white mb-2">FAQ</h2>
       <p className="text-gray-400 mb-8">
         Here you will find the answers to the frequently asked questions.
       </p>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Left Column */}
         <div className="space-y-4">
           {faqData.slice(0, 5).map((faq, index) => (

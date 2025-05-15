@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "../../context/AuthContext";
 import AuthModal from "./AuthModal";
+import { Menu, Transition } from "@headlessui/react";
+import { ChevronDown, LogOut, Settings, LayoutDashboard } from "lucide-react";
 
 interface User {
   role: string;
@@ -24,8 +26,6 @@ export default function Navbar() {
 
   const handleSignOut = async () => {
     setIsLoading(true);
-    console.log("Signing out...");
-
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`,
@@ -34,25 +34,22 @@ export default function Navbar() {
           credentials: "include",
         }
       );
-
       if (response.ok) {
-        console.log("Backend logout successful");
         setUser(null);
         router.push("/");
       } else {
-        console.error("Failed to log out on the backend");
         throw new Error("Logout failed");
       }
     } catch (error) {
       console.error("Error signing out:", error);
-      // You might want to show an error message to the user here
     } finally {
       setIsLoading(false);
     }
   };
+
   return (
-    <>
-      <nav className="flex items-center space-x-6">
+    <div className="w-full flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between px-4 py-3 bg-[#24292f]">
+      <div className="flex items-center space-x-4 sm:mx-auto">
         <Image
           src="/images/logo.png"
           alt="Le Bain Code Logo"
@@ -72,28 +69,91 @@ export default function Navbar() {
         >
           Contact
         </Link>
-      </nav>
+      </div>
 
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center sm:mx-auto">
         {user ? (
-          <>
-            <span className="text-white">
-              {user?.role === "admin" ? user.username : `User ${user.username}`}
-            </span>
-            <button
-              onClick={handleSignOut}
-              disabled={isLoading}
-              className={`text-gray-300 hover:text-white transition-colors ${
-                isLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+          <Menu as="div" className="relative">
+            <Menu.Button className="flex items-center space-x-2 text-white hover:text-gray-200 text-sm focus:outline-none">
+              {/* Avatar à gauche */}
+              <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white text-xs">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+              {/* Nom d'utilisateur */}
+              <span className="truncate max-w-[100px]">
+                {user.role === "admin"
+                  ? user.username
+                  : `User ${user.username}`}
+              </span>
+              {/* Flèche */}
+              <ChevronDown className="w-4 h-4 ml-1" />
+            </Menu.Button>
+
+            <Transition
+              as={Fragment}
+              enter="transition ease-out duration-100"
+              enterFrom="transform opacity-0 scale-95"
+              enterTo="transform opacity-100 scale-100"
+              leave="transition ease-in duration-75"
+              leaveFrom="transform opacity-100 scale-100"
+              leaveTo="transform opacity-0 scale-95"
             >
-              {isLoading ? "Signing out..." : "Sign out"}
-            </button>
-          </>
+              <Menu.Items className="absolute right-0 mt-2 w-44 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none z-50">
+                <div className="py-1">
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={() => router.push("/dashboard")}
+                        className={`${
+                          active ? "bg-gray-100" : ""
+                        } w-full px-4 py-2 text-left text-sm text-gray-700 flex items-center gap-2`}
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        Dashboard
+                      </button>
+                    )}
+                  </Menu.Item>
+
+                  <div className="border-t my-1 border-gray-200" />
+
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={() => alert("Paramètres à venir")}
+                        className={`${
+                          active ? "bg-gray-100" : ""
+                        } w-full px-4 py-2 text-left text-sm text-gray-700 flex items-center gap-2`}
+                      >
+                        <Settings className="w-4 h-4" />
+                        Paramètres
+                      </button>
+                    )}
+                  </Menu.Item>
+
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={handleSignOut}
+                        disabled={isLoading}
+                        className={`${
+                          active ? "bg-gray-100" : ""
+                        } w-full px-4 py-2 text-left text-sm text-red-600 flex items-center gap-2 ${
+                          isLoading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Déconnexion
+                      </button>
+                    )}
+                  </Menu.Item>
+                </div>
+              </Menu.Items>
+            </Transition>
+          </Menu>
         ) : (
           <button
             onClick={() => setIsAuthModalOpen(true)}
-            className="text-gray-300 hover:text-white transition-colors"
+            className="text-gray-300 hover:text-white text-sm transition-colors"
           >
             Sign in
           </button>
@@ -104,6 +164,6 @@ export default function Navbar() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
       />
-    </>
+    </div>
   );
 }

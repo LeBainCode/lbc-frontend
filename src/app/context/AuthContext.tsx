@@ -141,9 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (data.authenticated && data.user) {
-        const baseUser = data.user;
+        const baseUser: User = data.user;
 
-        // Si email absent, aller le chercher
         if (!baseUser.email) {
           try {
             const emailRes = await fetch(
@@ -157,9 +156,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             );
 
             if (emailRes.ok) {
-              const allUsers = await emailRes.json();
+              const allUsers: User[] = await emailRes.json();
               const matchedUser = allUsers.find(
-                (u: any) => u.id === baseUser.id
+                (u: User) => u.id === baseUser.id
               );
               if (matchedUser && matchedUser.email) {
                 baseUser.email = matchedUser.email;
@@ -169,8 +168,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 status: emailRes.status,
               });
             }
-          } catch (emailError) {
-            debug("Error fetching emails", emailError);
+          } catch (emailError: unknown) {
+            const errMsg =
+              emailError instanceof Error
+                ? emailError.message
+                : String(emailError);
+            debug("Error fetching emails", errMsg);
           }
         }
 
@@ -184,9 +187,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
         return null;
       }
-
-      setIsLoading(false);
-      return data.user || null;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);

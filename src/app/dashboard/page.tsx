@@ -95,8 +95,11 @@ export default function Dashboard() {
   };
   return (
     <>
-      <main className="min-h-screen bg-[#0D1117]">
+      <header className="bg-[#24292f] flex items-center justify-between p-4">
         <Navbar />
+      </header>
+
+      <main className="min-h-screen bg-[#0D1117]">
         <div className="container mx-auto px-6 pt-32">
           <div className="mb-1">
             <h1 className="text-6xl font-bold text-[#e6e6e6]">

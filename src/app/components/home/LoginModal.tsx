@@ -1,3 +1,5 @@
+// components/LoginModal.tsx
+
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -27,6 +29,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
       const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -40,6 +43,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       }
 
       const data = await response.json();
+
       setUser(data.user);
       onClose();
       router.push("/dashboard");
@@ -54,6 +58,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   };
 
   return (
+
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-[#1F2937] w-full max-w-sm sm:max-w-md rounded-lg p-6 relative shadow-lg">
         <h2 className="text-2xl font-bold text-white mb-6 text-center">

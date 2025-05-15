@@ -43,6 +43,7 @@ export default function Hero() {
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+
     try {
       if (!user) {
         const checkUser = await fetch(`${apiUrl}/api/users/check-email`, {
@@ -53,12 +54,15 @@ export default function Hero() {
         });
 
         const userData = await checkUser.json();
+
         if (userData.exists) {
           setEmailMessage(`Hi ${userData.username}, please login`);
           return;
         }
 
+
         const checkProspect = await fetch(
+
           `${apiUrl}/api/prospects/check-email`,
           {
             method: "POST",
@@ -68,7 +72,9 @@ export default function Hero() {
           }
         );
 
+
         const prospectData = await checkProspect.json();
+
         if (prospectData.exists) {
           setEmailMessage("This email is already registered");
           return;
@@ -82,6 +88,7 @@ export default function Hero() {
         });
 
         const responseData = await response.json();
+
         if (!response.ok) throw new Error(responseData.message);
         setEmailMessage("Email saved successfully!");
       } else {
@@ -106,6 +113,7 @@ export default function Hero() {
 
   return (
     <>
+
       <section className="w-full px-4 sm:px-6 lg:px-8 py-16 text-white">
         <div className="max-w-4xl mx-auto ">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 leading-tight">
@@ -171,7 +179,7 @@ export default function Hero() {
           </div>
         </div>
       </section>
-
+        
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}

@@ -14,6 +14,9 @@ const faqData: FAQItem[] = [
       "What support services do you offer after installing green energy solutions?",
   },
   { question: "How do solar panels work?" },
+
+  // Duplicate test questions for right column
+
   { question: "What is green energy?" },
   { question: "How does green energy benefit the environment?" },
   { question: "What green energy solutions does your company offer?" },
@@ -32,11 +35,14 @@ export default function FAQ() {
   };
 
   return (
+
     <div className="w-[90vw] sm:w-[80vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto p-0">
+
       <h2 className="text-4xl font-bold text-white mb-2">FAQ</h2>
       <p className="text-gray-400 mb-8">
         Here you will find the answers to the frequently asked questions.
       </p>
+
 
       {/* Responsive grid: 1 col on mobile, 2 cols on md+ */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -62,6 +68,7 @@ export default function FAQ() {
             )}
           </button>
         ))}
+
       </div>
     </div>
   );

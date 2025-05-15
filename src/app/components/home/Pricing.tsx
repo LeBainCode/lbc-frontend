@@ -1,5 +1,6 @@
 export default function Pricing() {
   return (
+
     <div className="hidden w-[90vw] sm:w-[80vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto p-0">
       <h2 className="text-3xl font-bold text-white mb-8">Pricing Plans</h2>
 
@@ -80,6 +81,8 @@ export default function Pricing() {
             <span className="text-[#252525] text-4xl font-medium">19.25</span>
             <span className="text-gray-400 ml-2">per month</span>
           </div>
+
+          {/* Boutons côte à côte */}
 
           <div className="grid grid-cols-2 gap-3 mb-8">
             <button className="bg-[#252525] text-[#e6e6e6] py-2.5 rounded font-bold text-sm">

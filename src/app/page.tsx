@@ -14,10 +14,9 @@ import Footer from "./components/Footer";
 export default function Home() {
   return (
     <>
-      <header className="bg-[#24292f]">
+      <header className="bg-[#24292f] flex items-center justify-between p-4">
         <Navbar />
       </header>
-
 
       <main className="min-h-screen bg-[#0D1117] flex flex-col">
         <div className="mb-10 pt-32" id="/">
@@ -41,7 +40,6 @@ export default function Home() {
         </div>
 
         <div className="mb-10 pt-32" id="contact">
-
           <Contact />
         </div>
       </main>

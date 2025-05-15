@@ -43,36 +43,22 @@ export default function Hero() {
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.group("📧 Email Submission");
-    console.log("Starting email submission process", {
-      email,
-      isLoggedIn: !!user,
-      timestamp: new Date().toISOString(),
-    });
-
     try {
-      console.log("Using API URL:", apiUrl);
-
       if (!user) {
-        const userCheckResponse = await fetch(
-          `${apiUrl}/api/users/check-email`,
-          {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
-          }
-        );
+        const checkUser = await fetch(`${apiUrl}/api/users/check-email`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
 
-        const userData = await userCheckResponse.json();
-        console.log("User check response:", userData);
-
+        const userData = await checkUser.json();
         if (userData.exists) {
           setEmailMessage(`Hi ${userData.username}, please login`);
           return;
         }
 
-        const prospectCheckResponse = await fetch(
+        const checkProspect = await fetch(
           `${apiUrl}/api/prospects/check-email`,
           {
             method: "POST",
@@ -82,9 +68,7 @@ export default function Hero() {
           }
         );
 
-        const prospectData = await prospectCheckResponse.json();
-        console.log("Prospect check response:", prospectData);
-
+        const prospectData = await checkProspect.json();
         if (prospectData.exists) {
           setEmailMessage("This email is already registered");
           return;
@@ -98,30 +82,20 @@ export default function Hero() {
         });
 
         const responseData = await response.json();
-        console.log("Registration response:", responseData);
-
-        if (!response.ok) {
-          throw new Error(responseData.message || "Failed to save email");
-        }
-
+        if (!response.ok) throw new Error(responseData.message);
         setEmailMessage("Email saved successfully!");
-      } else if (typeof user.email === "string") {
-        setEmail(user.email);
+      } else {
+        setEmail(user.email || "");
         setEmailMessage("Welcome back!");
       }
     } catch (error) {
-      console.error("Email submission error:", error);
       setEmailMessage(
         error instanceof Error ? error.message : "An error occurred"
       );
-    } finally {
-      console.groupEnd();
     }
   };
 
-  const handleDashboardClick = () => {
-    router.push("/dashboard");
-  };
+  const handleDashboardClick = () => router.push("/dashboard");
 
   const handleGitHubSignIn = () => {
     window.location.href =
@@ -132,69 +106,72 @@ export default function Hero() {
 
   return (
     <>
-      <div className="sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto p-0">
-        <h1 className="text-6xl font-bold text-white mb-6">Le Bain Code</h1>
-        <p className="text-gray-400 text-base mb-8 max-w-md leading-relaxed">
-          This is a paragraph with more information about something important.
-          This something has many uses and is made of 100% recycled material.
-        </p>
+      <section className="w-full px-4 sm:px-6 lg:px-8 py-16 text-white">
+        <div className="max-w-4xl mx-auto ">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 leading-tight">
+            Le Bain Code
+          </h1>
+          <p className="text-gray-400 text-base sm:text-lg max-w-xl leading-relaxed mb-10">
+            This is a paragraph with more information about something important.
+            This something has many uses and is made of 100% recycled material.
+          </p>
 
-        <div className="flex gap-3">
-          <form
-            onSubmit={handleEmailSubmit}
-            className={`flex relative ${user ? "flex-1 max-w-[440px]" : ""}`}
-          >
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={
-                user?.email
-                  ? `Any updates will be sent to ${user.email}`
-                  : "Enter your email address"
-              }
-              className="w-[240px] px-3 py-2 bg-transparent rounded-l text-sm border border-gray-700
-                focus:outline-none focus:border-[#BF9ACA] text-[#BF9ACA]
-                placeholder-gray-500 transition-all duration-300"
-            />
-            <button
-              type="submit"
-              className="bg-[#BF9ACA] px-4 py-2 rounded-r text-sm hover:bg-[#7C3AED] transition-colors"
+          <div className="flex flex-col sm:items-center sm:gap-4 max-w-2xl w-full">
+            <form
+              onSubmit={handleEmailSubmit}
+              className="flex flex-col md:flex-row w-full sm:w-4/5 md:w-full items-stretch gap-2 relative"
             >
-              Submit
-            </button>
-            {emailMessage && (
-              <div className="absolute -top-8 left-0 bg-[#BF9ACA] text-white px-3 py-1 rounded text-sm animate-fade-in-out">
-                {emailMessage}
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={
+                  user?.email
+                    ? `Any updates will be sent to ${user.email}`
+                    : "Enter your email address"
+                }
+                className="w-full md:w-[60%] px-4 py-2 text-sm bg-transparent border border-gray-600 rounded md:rounded-l md:rounded-r-none text-[#BF9ACA] placeholder-gray-500 focus:outline-none focus:border-[#BF9ACA] transition-all duration-300"
+              />
+              <button
+                type="submit"
+                className="w-full md:w-[40%] px-4 py-2 text-sm bg-[#BF9ACA] hover:bg-[#7C3AED] transition-colors rounded md:rounded-r md:rounded-l-none"
+              >
+                Submit
+              </button>
+              {emailMessage && (
+                <div className="absolute -top-8 left-0 bg-[#BF9ACA] text-white px-3 py-1 rounded text-sm animate-fade-in-out">
+                  {emailMessage}
+                </div>
+              )}
+            </form>
+
+            {!user ? (
+              <div className="flex flex-col sm:flex-col md:flex-row gap-2 w-full sm:w-4/5 md:w-full mt-4">
+                <button
+                  onClick={handleGitHubSignIn}
+                  className="w-full md:w-auto bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors"
+                >
+                  Sign in through GitHub
+                </button>
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="w-full md:w-auto border border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
+                >
+                  Organization Login <span className="text-gray-400">→</span>
+                </button>
               </div>
+            ) : (
+              <button
+                onClick={handleDashboardClick}
+                className="w-full sm:w-4/5 md:w-auto mt-4 border border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
+              >
+                Dashboard <span className="text-gray-400">→</span>
+              </button>
             )}
-          </form>
-
-          {!user ? (
-            <>
-              <button
-                onClick={handleGitHubSignIn}
-                className="ml-2 bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors whitespace-nowrap"
-              >
-                Sign in through GitHub
-              </button>
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
-              >
-                Organization Login <span className="text-gray-400">→</span>
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={handleDashboardClick}
-              className="border-2 border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
-            >
-              Dashboard <span className="text-gray-400">→</span>
-            </button>
-          )}
+          </div>
         </div>
-      </div>
+      </section>
+
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}

@@ -1,7 +1,9 @@
 export default function Pricing() {
   return (
-    <div className="hidden sm:w-[90vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto p-0">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="hidden w-[90vw] sm:w-[80vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto p-0">
+      <h2 className="text-3xl font-bold text-white mb-8">Pricing Plans</h2>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Free Plan */}
         <div className="flex flex-col bg-[#e6e6e6] rounded-lg p-8">
           <h3 className="text-center text-[#252525] text-xl font-medium mb-2">
@@ -79,7 +81,6 @@ export default function Pricing() {
             <span className="text-gray-400 ml-2">per month</span>
           </div>
 
-          {/* Boutons côte à côte */}
           <div className="grid grid-cols-2 gap-3 mb-8">
             <button className="bg-[#252525] text-[#e6e6e6] py-2.5 rounded font-bold text-sm">
               Start a free trial

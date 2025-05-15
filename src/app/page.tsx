@@ -18,28 +18,30 @@ export default function Home() {
         <Navbar />
       </header>
 
-      <main className="min-h-screen bg-[#0D1117] flex flex-col justify-center align-middle">
-        <div className="container mb-20 pt-32" id="/">
+
+      <main className="min-h-screen bg-[#0D1117] flex flex-col">
+        <div className="mb-10 pt-32" id="/">
           <Hero />
         </div>
 
-        <div className="container mt-32" id="rules">
+        <div className="mb-10 pt-32" id="rules">
           <Rules />
         </div>
 
-        <div className="container mt-32 mb-20">
+        <div className="mb-10 pt-32">
           <AddOns />
         </div>
 
-        <div className="container mt-32 mb-20">
+        <div className="mb-10 pt-32">
           <Pricing />
         </div>
 
-        <div className="container mt-32 mb-20">
+        <div className="mb-10 pt-32">
           <FAQ />
         </div>
 
-        <div className="container mt-32 pb-32" id="contact">
+        <div className="mb-10 pt-32" id="contact">
+
           <Contact />
         </div>
       </main>

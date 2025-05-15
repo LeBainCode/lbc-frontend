@@ -11,6 +11,7 @@ import {
 // Define strict types for our context and user
 interface User {
   id: string;
+  email?: string;
   [key: string]: unknown;
 }
 
@@ -30,7 +31,6 @@ interface LogEntry {
   data?: unknown;
 }
 
-// Type guard for response data
 interface ResponseData {
   status: number;
   [key: string]: unknown;
@@ -63,7 +63,9 @@ const debug = (message: string, data?: unknown) => {
       const logs = JSON.parse(
         localStorage.getItem("authContextLogs") || "[]"
       ) as LogEntry[];
+
       logs.push({ timestamp, message, data: safeData });
+
       if (logs.length > 50) logs.shift();
       localStorage.setItem("authContextLogs", JSON.stringify(logs));
     } catch (err) {
@@ -104,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
   }, []);
 
-  const fetchUserData = async () => {
+  const fetchUserData = async (): Promise<User | null> => {
     try {
       debug("Checking authentication status");
 
@@ -138,11 +140,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (data.authenticated && data.user) {
-        debug("User authenticated", { userId: data.user.id });
-        setUser(data.user);
+        const baseUser = data.user;
+
+        // Si email absent, aller le chercher
+        if (!baseUser.email) {
+          try {
+            const emailRes = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/email/all`,
+              {
+                credentials: "include",
+                headers: {
+                  Accept: "application/json",
+                },
+              }
+            );
+
+            if (emailRes.ok) {
+              const allUsers = await emailRes.json();
+              const matchedUser = allUsers.find(
+                (u: any) => u.id === baseUser.id
+              );
+              if (matchedUser && matchedUser.email) {
+                baseUser.email = matchedUser.email;
+              }
+            } else {
+              debug("Failed to fetch emails from /api/email/all", {
+                status: emailRes.status,
+              });
+            }
+          } catch (emailError) {
+            debug("Error fetching emails", emailError);
+          }
+        }
+
+        debug("User authenticated", baseUser);
+        setUser(baseUser);
+        setIsLoading(false);
+        return baseUser;
       } else {
         debug("No authenticated user");
         setUser(null);
+        setIsLoading(false);
+        return null;
       }
 
       setIsLoading(false);

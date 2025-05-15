@@ -1,11 +1,13 @@
 export default function AddOns() {
   return (
+
     <div className="w-[90vw] sm:w-[80vw] md:w-[70vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto p-0">
       <h2 className="text-3xl font-bold text-white mb-8">Additional add-ons</h2>
 
       {/* Grid responsive : 1 -> 2 -> 4 colonnes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* === Card 1 === */}
+
         <div className="flex flex-col bg-[#e6e6e6] rounded-lg p-6">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#0969da] mb-4 text-white">
             ⚡
@@ -20,6 +22,7 @@ export default function AddOns() {
         </div>
 
         {/* === Card 2 === */}
+
         <div className="flex flex-col bg-[#e6e6e6] rounded-lg p-6">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#BF9ACA] mb-4 text-white">
             🔮
@@ -33,7 +36,9 @@ export default function AddOns() {
           </button>
         </div>
 
+
         {/* === Card 3 === */}
+
         <div className="flex flex-col bg-[#e6e6e6] rounded-lg p-6">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#fff8c5] mb-4 text-black">
             📦
@@ -48,6 +53,7 @@ export default function AddOns() {
         </div>
 
         {/* === Card 4 === */}
+
         <div className="flex flex-col bg-[#e6e6e6] rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#dafbe1]">

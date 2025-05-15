@@ -44,6 +44,7 @@ export default function Rules() {
     <div className="mx-auto p-0 w-[90vw] sm:w-[80vw] md:w-[80vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw]">
       <h2 className="text-2xl font-bold text-white mb-4">Regles</h2>
       <p className="text-gray-300 text-base mb-8 max-w-[90vw] sm:max-w-[80vw] md:max-w-[80vw] lg:max-w-[70vw] mx-auto leading-relaxed">
+
         This is a paragraph with more information about something important.
         This something has many uses and is made of 100% recycled material.
       </p>
@@ -70,8 +71,7 @@ export default function Rules() {
         {rules[currentPage].map((rule) => (
           <div
             key={rule.id}
-            className="bg-[#e6e6e6] p-4 rounded-lg cursor-pointer max-w-[90vw] sm:max-w-[80vw] md:max-w-[80vw] lg:max-w-[70vw]"
-          >
+            className="bg-[#e6e6e6] p-4 rounded-lg cursor-pointer max-w-[90vw] sm:max-w-[80vw] md:max-w-[80vw] lg:max-w-[70vw]">
             <div className="flex items-center">
               <span className="text-gray-400 mr-2">{rule.id}</span>
               <span className="text-[#344054]">{rule.text}</span>
@@ -107,6 +107,7 @@ export default function Rules() {
             }
             w-1/2 md:w-auto
           `}
+
         >
           Next
         </button>

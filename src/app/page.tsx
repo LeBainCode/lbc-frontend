@@ -18,6 +18,7 @@ export default function Home() {
         <Navbar />
       </header>
 
+
       <main className="min-h-screen bg-[#0D1117] flex flex-col">
         <div className="mb-10 pt-32" id="/">
           <Hero />
@@ -40,6 +41,7 @@ export default function Home() {
         </div>
 
         <div className="mb-10 pt-32" id="contact">
+
           <Contact />
         </div>
       </main>

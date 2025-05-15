@@ -10,7 +10,7 @@ import Stats from "../components/dashboardcomp/Stats";
 import Modules from "../components/dashboardcomp/Modules";
 import AdminPanel from "../components/dashboardcomp/AdminPanel";
 import AlertPopup from "../components/dashboardcomp/AlertPopup";
-
+import Profil from "../components/dashboardcomp/Profil";
 // Define TypeScript interfaces
 interface Progress {
   cModule: {
@@ -99,35 +99,23 @@ export default function Dashboard() {
         <Navbar />
       </header>
 
-      <main className="min-h-screen bg-[#0D1117]">
-        <div className="container mx-auto px-6 pt-32">
-          <div className="mb-1">
-            <h1 className="text-6xl font-bold text-[#e6e6e6]">
-              Hello {user.username}
-              {user.role === "admin" && (
-                <span className="text-[#BF9ACA] ml-2">(Admin)</span>
-              )}
-            </h1>
-            <Link
-              href="/setting"
-              className="text-[#84cc16] text-sm hover:underline"
-            >
-              Settings
-            </Link>
-          </div>
+      <main className="min-h-screen bg-[#0D1117] overflow-x-hidden flex flex-col items-center px-6 pt-32">
+        <div className="mb-10 pt-32">
+          <Profil username={user.username} role={user.role} />
+        </div>
+        <div className="mb-10 pt-32">
+          <h2 className="text-white text-2xl font-medium mb-6">Statistiques</h2>
+          <Stats userStats={stats} />
+        </div>
 
-          <div className="mt-12">
-            <h2 className="text-white text-2xl font-medium mb-6">
-              Statistiques
-            </h2>
-            <Stats userStats={stats} />
-          </div>
+        <div className=" hidden mb-10 pt-32">
+          <Modules />
+        </div>
 
-          <div className="mt-12">
-            <Modules />
-          </div>
+        <div className="mb-10 pt-32 mx-auto">
           {user.role === "admin" && <AdminPanel />}
         </div>
+
         <AlertPopup hasEmail={Boolean(user.email)} />
       </main>
       <Footer />

@@ -47,10 +47,15 @@ const isResponseData = (data: unknown): data is ResponseData => {
 
 const debug = (message: string, data?: unknown) => {
   const timestamp = new Date().toISOString();
+  const safeData =
+    typeof data === "object" && data !== null
+      ? JSON.parse(JSON.stringify(data))
+      : data;
+
   if (isResponseData(data) && data.status === 401) {
     console.log(`[AuthContext] ${message} (Expected - User not authenticated)`);
   } else {
-    console.log(`[AuthContext] ${message}`, data || "");
+    console.log(`[AuthContext] ${message}`, safeData || "");
   }
 
   if (typeof window !== "undefined") {
@@ -58,12 +63,11 @@ const debug = (message: string, data?: unknown) => {
       const logs = JSON.parse(
         localStorage.getItem("authContextLogs") || "[]"
       ) as LogEntry[];
-      logs.push({ timestamp, message, data });
-      // Keep only the last 50 logs
+      logs.push({ timestamp, message, data: safeData });
       if (logs.length > 50) logs.shift();
       localStorage.setItem("authContextLogs", JSON.stringify(logs));
-    } catch (error: unknown) {
-      console.warn("[AuthContext] LocalStorage error:", error);
+    } catch (err) {
+      console.warn("[AuthContext] LocalStorage error:", err);
     }
   }
 };
@@ -143,8 +147,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setIsLoading(false);
       return data.user || null;
-    } catch (error: unknown) {
-      debug("Error checking authentication", error);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      debug("Error checking authentication", { error: errorMessage });
       setError("Failed to check authentication status");
       setIsLoading(false);
       return null;
@@ -181,5 +187,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     isAuthenticated: !!user,
   };
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

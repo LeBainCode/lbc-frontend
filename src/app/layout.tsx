@@ -1,11 +1,10 @@
 // src/app/layout.tsx
-// src/app/layout.tsx
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
 import { DebugInitializer } from "./components/DebugInitializer";
 import { Metadata } from "next";
-import { Analytics, type BeforeSendEvent } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
 

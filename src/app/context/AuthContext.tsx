@@ -68,8 +68,9 @@ const debug = (message: string, data?: unknown) => {
 
       if (logs.length > 50) logs.shift();
       localStorage.setItem("authContextLogs", JSON.stringify(logs));
-    } catch (err) {
-      console.warn("[AuthContext] LocalStorage error:", err);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.warn("[AuthContext] LocalStorage error:", errorMessage);
     }
   }
 };
@@ -186,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setIsLoading(false);
       return data.user || null;
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       debug("Error checking authentication", { error: errorMessage });

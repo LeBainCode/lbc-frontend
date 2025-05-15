@@ -3,13 +3,13 @@
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
+import Navbar from "../components/navcomp/Navbar";
 import Footer from "../components/Footer";
 import Link from "next/link";
-import Stats from "../components/Stats";
-import Modules from "../components/Modules";
-import AdminPanel from "../components/AdminPanel";
-import AlertPopup from "../components/AlertPopup";
+import Stats from "../components/dashboardcomp/Stats";
+import Modules from "../components/dashboardcomp/Modules";
+import AdminPanel from "../components/dashboardcomp/AdminPanel";
+import AlertPopup from "../components/dashboardcomp/AlertPopup";
 
 // Define TypeScript interfaces
 interface Progress {

@@ -1,6 +1,6 @@
 // src/app/components/AdminPanel.tsx
 "use client";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useState, useEffect } from "react";
 import { Prospect, RegularUser } from "@/app/types/admin";
 import UserCount from "./admin/UserCount";

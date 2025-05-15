@@ -2,7 +2,7 @@
 "use client";
 
 // import { useState } from "react";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/navcomp/Navbar";
 import Hero from "./components/home/Hero";
 import Rules from "./components/home/Rules";
 import AddOns from "./components/home/AddOns";

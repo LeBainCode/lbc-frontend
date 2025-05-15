@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import Navbar from "../components/Navbar";
+import Navbar from "../components/navcomp/Navbar";
 import Footer from "../components/Footer";
 // import { Bentham } from "next/font/google";
 

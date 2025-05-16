@@ -119,7 +119,7 @@ export default function Navbar() {
                   <Menu.Item>
                     {({ active }) => (
                       <button
-                        onClick={() => alert("Paramètres à venir")}
+                        onClick={() => router.push("/setting")}
                         className={`${
                           active ? "bg-gray-100" : ""
                         } w-full px-4 py-2 text-left text-sm text-gray-700 flex items-center gap-2`}

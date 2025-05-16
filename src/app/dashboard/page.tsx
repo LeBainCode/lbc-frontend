@@ -99,20 +99,20 @@ export default function Dashboard() {
         <Navbar />
       </header>
 
-      <main className="min-h-screen bg-[#0D1117] overflow-x-hidden flex flex-col items-center px-6 pt-32">
-        <div className="mb-10 pt-32">
+      <main className="min-h-screen bg-[#0D1117] overflow-x-hidden flex flex-col items-center">
+        <div className="mb-10 pt-8">
           <Profil username={user.username} role={user.role} />
         </div>
-        <div className="mb-10 pt-32">
+        <div className="mb-10 pt-8">
           <h2 className="text-white text-2xl font-medium mb-6">Statistiques</h2>
           <Stats userStats={stats} />
         </div>
 
-        <div className=" hidden mb-10 pt-32">
+        <div className=" hidden mb-10 pt-8">
           <Modules />
         </div>
 
-        <div className="mb-10 pt-32 mx-auto">
+        <div className="mb-10 pt-8">
           {user.role === "admin" && <AdminPanel />}
         </div>
 

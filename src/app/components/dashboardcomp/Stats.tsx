@@ -9,7 +9,7 @@ interface StatsProps {
 
 export default function Stats({ userStats }: StatsProps) {
   return (
-    <div className="w-full max-w-[90vw] sm:max-w-[80vw] md:max-w-[80vw] xl:max-w-[60vw] 2xl:max-w-[50vw] mx-auto border-2 border-[#BF9ACA] rounded-lg p-6 sm:p-8">
+    <div className="w-full max-w-[90vw] sm:w-[80vw] md:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto border-2 border-[#BF9ACA] rounded-lg sm:p-8">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 place-items-center text-center">
         <div className="flex flex-col items-center justify-center">
           <p className="text-3xl sm:text-4xl font-medium text-white mb-1 sm:mb-2">

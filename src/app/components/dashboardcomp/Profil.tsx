@@ -14,7 +14,10 @@ export default function Profile({ username, role }: ProfilProps) {
           <span className="text-[#BF9ACA] ml-2">(Admin)</span>
         )}
       </h1>
-      <Link href="/setting" className="text-[#84cc16] text-sm hover:underline">
+      <Link
+        href="/setting"
+        className="hidden text-[#84cc16] text-sm hover:underline"
+      >
         Settings
       </Link>
     </div>

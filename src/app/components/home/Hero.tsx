@@ -8,7 +8,11 @@ import LoginModal from "./LoginModal";
 import { ConsoleDebugger } from "../../utils/consoleDebug";
 import type { DebugInfo } from "../../utils/consoleDebug";
 
-export default function Hero() {
+interface HeroProps {
+  onNewProspect: (email: string) => void;
+}
+
+export default function Hero({ onNewProspect }: HeroProps) {
   const [email, setEmail] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -18,7 +22,6 @@ export default function Hero() {
   const router = useRouter();
 
   useEffect(() => {
-    // Remplit l'email si le user est connecté et que l'état est encore vide
     if (user?.email && !email) {
       setEmail(user.email);
       setEmailMessage("Welcome back!");
@@ -35,7 +38,6 @@ export default function Hero() {
     };
 
     setApiUrl(debugInfo.apiUrl);
-
     consoleDebugger.showUserWelcome();
     consoleDebugger.showDevConsole(debugInfo);
 
@@ -59,7 +61,6 @@ export default function Hero() {
         });
 
         const userData = await checkUser.json();
-
         if (userData.exists) {
           setEmailMessage(`Hi ${userData.username}, please login`);
           return;
@@ -76,7 +77,6 @@ export default function Hero() {
         );
 
         const prospectData = await checkProspect.json();
-
         if (prospectData.exists) {
           setEmailMessage("This email is already registered");
           return;
@@ -90,9 +90,10 @@ export default function Hero() {
         });
 
         const responseData = await response.json();
-
         if (!response.ok) throw new Error(responseData.message);
+
         setEmailMessage("Email saved successfully!");
+        onNewProspect(email); // ✅ Ajout dans la liste des prospects
       } else {
         setEmail(user.email || "");
         setEmailMessage("Welcome back!");
@@ -155,7 +156,7 @@ export default function Hero() {
             </form>
 
             {!user ? (
-              <div className="flex flex-col sm:flex-col md:flex-row gap-2 w-full sm:w-4/5 md:w-full mt-4">
+              <div className="flex flex-col md:flex-row gap-2 w-full sm:w-4/5 md:w-full mt-4">
                 <button
                   onClick={handleGitHubSignIn}
                   className="w-full md:w-auto bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors"

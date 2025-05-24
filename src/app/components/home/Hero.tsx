@@ -4,30 +4,28 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import LoginModal from "./LoginModal";
-
 import { ConsoleDebugger } from "../../utils/consoleDebug";
 import type { DebugInfo } from "../../utils/consoleDebug";
 
-interface HeroProps {
-  onNewProspect: (email: string) => void;
+interface UserEmail {
+  email: string;
+  username?: string;
 }
 
-export default function Hero({ onNewProspect }: HeroProps) {
+export default function Hero() {
   const [email, setEmail] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [apiUrl, setApiUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const { user } = useAuth();
   const router = useRouter();
 
+  // Initial debug info and API setup
   useEffect(() => {
-    if (user?.email && !email) {
-      setEmail(user.email);
-      setEmailMessage("Welcome back!");
-    }
-
     const consoleDebugger = ConsoleDebugger.getInstance();
+
     const debugInfo: DebugInfo = {
       environment: process.env.NODE_ENV || "development",
       apiUrl:
@@ -38,70 +36,105 @@ export default function Hero({ onNewProspect }: HeroProps) {
     };
 
     setApiUrl(debugInfo.apiUrl);
+
     consoleDebugger.showUserWelcome();
     consoleDebugger.showDevConsole(debugInfo);
 
-    console.group("🏠 Home Component Initialized");
+    console.group("üè† Home Component Initialized");
     console.log("User:", user);
     console.log("Initial Email:", email);
     console.log("Environment:", debugInfo.environment);
     console.groupEnd();
-  }, [user, email]);
+  }, []);
+
+  // Email update when user email is fetched asynchronously
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [user?.email]);
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setEmailMessage("");
+
+    if (!email.trim()) {
+      setEmailMessage("Please enter an email address");
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       if (!user) {
-        const checkUser = await fetch(`${apiUrl}/api/users/check-email`, {
-          method: "POST",
+        const userResponse = await fetch(`${apiUrl}/api/email/users/public`, {
+          method: "GET",
           credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
         });
 
-        const userData = await checkUser.json();
-        if (userData.exists) {
-          setEmailMessage(`Hi ${userData.username}, please login`);
+        if (!userResponse.ok) throw new Error("Failed to check user emails");
+
+        const userData = await userResponse.json();
+        const userEmails: UserEmail[] = userData.users || [];
+        const normalizedEmail = email.toLowerCase();
+
+        const userExists =
+          Array.isArray(userEmails) &&
+          userEmails.some((u) => u.email.toLowerCase() === normalizedEmail);
+
+        if (userExists) {
+          setEmailMessage("Welcome back! Please login to continue");
+          setTimeout(() => setIsLoginModalOpen(true), 1000);
           return;
         }
 
-        const checkProspect = await fetch(
-          `${apiUrl}/api/prospects/check-email`,
+        const prospectResponse = await fetch(
+          `${apiUrl}/api/email/prospects/${encodeURIComponent(email)}`,
           {
-            method: "POST",
+            method: "GET",
             credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
           }
         );
 
-        const prospectData = await checkProspect.json();
-        if (prospectData.exists) {
-          setEmailMessage("This email is already registered");
-          return;
+        if (prospectResponse.ok) {
+          const prospectData = await prospectResponse.json();
+          if (prospectData.exists) {
+            setEmailMessage(
+              "This email is already registered. Please create a GitHub account to continue."
+            );
+            return;
+          }
         }
 
-        const response = await fetch(`${apiUrl}/api/prospects/email`, {
+        const saveResponse = await fetch(`${apiUrl}/api/email/prospect`, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
         });
 
-        const responseData = await response.json();
-        if (!response.ok) throw new Error(responseData.message);
-
-        setEmailMessage("Email saved successfully!");
-        onNewProspect(email); // ✅ Ajout dans la liste des prospects
+        if (saveResponse.ok) {
+          setEmailMessage(
+            "Thank you for your interest! Please create a GitHub account to continue."
+          );
+        } else {
+          const saveData = await saveResponse.json();
+          throw new Error(saveData.message || "Failed to save your email");
+        }
       } else {
-        setEmail(user.email || "");
-        setEmailMessage("Welcome back!");
+        if (user.role === "admin") {
+          setEmailMessage(`Welcome back, admin ${user.username || ""}!`);
+        } else {
+          setEmailMessage(`Welcome back, ${user.username || ""}!`);
+        }
       }
     } catch (error) {
+      console.error("Error processing email:", error);
       setEmailMessage(
         error instanceof Error ? error.message : "An error occurred"
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -117,7 +150,7 @@ export default function Hero({ onNewProspect }: HeroProps) {
   return (
     <>
       <section className="w-full px-4 sm:px-6 lg:px-8 py-16 text-white">
-        <div className="max-w-4xl mx-auto ">
+        <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 leading-tight">
             Le Bain Code
           </h1>
@@ -125,7 +158,6 @@ export default function Hero({ onNewProspect }: HeroProps) {
             This is a paragraph with more information about something important.
             This something has many uses and is made of 100% recycled material.
           </p>
-
           <div className="flex flex-col sm:items-center sm:gap-4 max-w-2xl w-full">
             <form
               onSubmit={handleEmailSubmit}
@@ -144,9 +176,12 @@ export default function Hero({ onNewProspect }: HeroProps) {
               />
               <button
                 type="submit"
-                className="w-full md:w-[40%] px-4 py-2 text-sm bg-[#BF9ACA] hover:bg-[#7C3AED] transition-colors rounded md:rounded-r md:rounded-l-none"
+                disabled={isLoading}
+                className={`w-full md:w-[40%] px-4 py-2 text-sm ${
+                  isLoading ? "bg-gray-500" : "bg-[#BF9ACA] hover:bg-[#7C3AED]"
+                } transition-colors rounded md:rounded-r md:rounded-l-none`}
               >
-                Submit
+                {isLoading ? "Checking..." : "Submit"}
               </button>
               {emailMessage && (
                 <div className="absolute -top-8 left-0 bg-[#BF9ACA] text-white px-3 py-1 rounded text-sm animate-fade-in-out">
@@ -154,9 +189,8 @@ export default function Hero({ onNewProspect }: HeroProps) {
                 </div>
               )}
             </form>
-
             {!user ? (
-              <div className="flex flex-col md:flex-row gap-2 w-full sm:w-4/5 md:w-full mt-4">
+              <div className="flex flex-col sm:flex-col md:flex-row gap-2 w-full sm:w-4/5 md:w-full mt-4">
                 <button
                   onClick={handleGitHubSignIn}
                   className="w-full md:w-auto bg-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-[#7C3AED] transition-colors"
@@ -167,7 +201,7 @@ export default function Hero({ onNewProspect }: HeroProps) {
                   onClick={() => setIsLoginModalOpen(true)}
                   className="w-full md:w-auto border border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
                 >
-                  Organization Login <span className="text-gray-400">→</span>
+                  Organization Login
                 </button>
               </div>
             ) : (
@@ -175,13 +209,12 @@ export default function Hero({ onNewProspect }: HeroProps) {
                 onClick={handleDashboardClick}
                 className="w-full sm:w-4/5 md:w-auto mt-4 border border-[#BF9ACA] px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
               >
-                Dashboard <span className="text-gray-400">→</span>
+                Dashboard
               </button>
             )}
           </div>
         </div>
       </section>
-
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}

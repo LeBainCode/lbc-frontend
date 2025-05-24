@@ -146,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!baseUser.email) {
           try {
             const emailRes = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}/api/email/all`,
+              `${process.env.NEXT_PUBLIC_API_URL}/api/email/users/public`,
               {
                 credentials: "include",
                 headers: {
@@ -156,15 +156,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             );
 
             if (emailRes.ok) {
-              const allUsers: User[] = await emailRes.json();
-              const matchedUser = allUsers.find(
-                (u: User) => u.id === baseUser.id
-              );
+              const allUsers: { id: string; email: string }[] =
+                await emailRes.json();
+              const matchedUser = allUsers.find((u) => u.id === baseUser.id);
               if (matchedUser && matchedUser.email) {
                 baseUser.email = matchedUser.email;
               }
             } else {
-              debug("Failed to fetch emails from /api/email/all", {
+              debug("Failed to fetch emails from /api/email/users/public", {
                 status: emailRes.status,
               });
             }

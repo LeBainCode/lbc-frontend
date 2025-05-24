@@ -45,7 +45,7 @@ export default function Hero() {
     console.log("Initial Email:", email);
     console.log("Environment:", debugInfo.environment);
     console.groupEnd();
-  }, []);
+  }, [user, email]);
 
   // Email update when user email is fetched asynchronously
   useEffect(() => {

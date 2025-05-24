@@ -1,9 +1,9 @@
 // src/app/components/AnalyticsSection.tsx
-
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
 
+// Analytics data interface definitions
 interface PageView {
   path: string;
   timestamp: string;
@@ -20,84 +20,150 @@ interface AnalyticsData {
   };
 }
 
+// Efficient debug utility with deduplication and rate limiting
+const debugAnalytics = (() => {
+  // State maintained between calls
+  const seenMessages = new Set<string>();
+  let lastLog = 0;
+  const MIN_LOG_INTERVAL = 1000; // ms between similar logs
+  
+  // Return the actual debug function
+  return (message: string, data?: unknown, isError = false) => {
+    // Skip logging in production
+    if (process.env.NODE_ENV !== "development") return;
+    
+    const now = Date.now();
+    const dataStr = data ? 
+      (typeof data === "object" ? JSON.stringify(data) : String(data)) 
+      : "";
+    const key = `${message}:${dataStr}`;
+    
+    // Determine if this is an important message
+    const isImportant = 
+      isError || 
+      message.includes("error") || 
+      message.includes("failed");
+    
+    // Skip duplicate messages that happen too frequently
+    if (seenMessages.has(key) && now - lastLog < MIN_LOG_INTERVAL) return;
+    
+    // Skip non-important messages we've seen before
+    if (!isImportant && seenMessages.has(key)) return;
+    
+    // Update tracking
+    seenMessages.add(key);
+    lastLog = now;
+    
+    // Prevent memory leaks by clearing set periodically
+    if (seenMessages.size > 30) {
+      seenMessages.clear();
+    }
+    
+    // Format log message
+    const prefix = `[Analytics]`;
+    if (isError) {
+      console.error(`${prefix} ${message}`, data || "");
+    } else {
+      console.log(`${prefix} ${message}`, data || "");
+    }
+  };
+})();
+
 export default function AnalyticsSection() {
   const { user } = useAuth();
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
-    null
-  );
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isProduction = process.env.NODE_ENV === "production";
+  const fetchInProgress = useRef(false);
 
   useEffect(() => {
+    // Log API URL once on component mount
+    debugAnalytics("Component initialized with API URL", process.env.NEXT_PUBLIC_API_URL);
+    
     const fetchAnalytics = async () => {
-      console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
+      // Prevent multiple simultaneous fetches
+      if (fetchInProgress.current) return;
+      fetchInProgress.current = true;
+      
       if (!user) {
         setError("Authentication required");
         setIsLoading(false);
+        fetchInProgress.current = false;
         return;
       }
 
       try {
+        debugAnalytics("Fetching analytics data");
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-        const response = await fetch(
-          `${apiUrl}/api/admin/analytics/frontend-data`,
-          {
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await fetch(`${apiUrl}/api/admin/analytics/frontend-data`, {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(
-            errorData.message || "Failed to fetch analytics data"
-          );
+          throw new Error(errorData.message || "Failed to fetch analytics data");
         }
 
         const data = await response.json();
+        debugAnalytics("Analytics data received", {
+          totalVisits: data.totalVisits,
+          uniqueVisitors: data.uniqueVisitors
+        });
+        
         setAnalyticsData(data);
         setError(null);
       } catch (error) {
-        console.error("Error fetching analytics:", error);
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch analytics data"
-        );
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        debugAnalytics("Error fetching analytics", errorMessage, true);
+        setError(errorMessage);
       } finally {
         setIsLoading(false);
+        fetchInProgress.current = false;
       }
     };
 
+    // Initial fetch
     fetchAnalytics();
+    
+    // Setup interval for updates
     const interval = setInterval(fetchAnalytics, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      debugAnalytics("Component cleanup, interval cleared");
+    };
   }, [user]);
 
+  // Track page views in production only
   useEffect(() => {
-    const trackPageView = () => {
-      if (isProduction) {
-        const pageView: PageView = {
-          path: window.location.pathname,
-          timestamp: new Date().toISOString(),
-          domain: window.location.hostname,
-        };
+    if (!isProduction) return;
+    
+    try {
+      const pageView: PageView = {
+        path: window.location.pathname,
+        timestamp: new Date().toISOString(),
+        domain: window.location.hostname,
+      };
 
-        const storedViews = JSON.parse(
-          localStorage.getItem("pageViews") || "[]"
-        );
-        localStorage.setItem(
-          "pageViews",
-          JSON.stringify([...storedViews, pageView])
-        );
+      // Get existing page views
+      const storedViews = JSON.parse(localStorage.getItem("pageViews") || "[]");
+      
+      // Limit stored views to prevent memory issues (keep only last 100)
+      const updatedViews = [...storedViews, pageView];
+      if (updatedViews.length > 100) {
+        updatedViews.splice(0, updatedViews.length - 100);
       }
-    };
-
-    trackPageView();
+      
+      localStorage.setItem("pageViews", JSON.stringify(updatedViews));
+      debugAnalytics("Page view tracked", { path: pageView.path });
+    } catch (error) {
+      debugAnalytics("Error tracking page view", error, true);
+      // Silent fail - don't interrupt user experience for analytics
+    }
   }, [isProduction]);
 
   if (!user) {

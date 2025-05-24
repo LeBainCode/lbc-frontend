@@ -2,7 +2,7 @@
 
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Navbar from "../components/navcomp/Navbar";
 import AlertPopup from "../components/dashboardcomp/AlertPopup";
 import Profil from "../components/dashboardcomp/Profil";
@@ -10,6 +10,7 @@ import Modules from "../components/dashboardcomp/Modules";
 import Stats from "../components/dashboardcomp/Stats";
 import AdminPanel from "../components/dashboardcomp/AdminPanel";
 import Footer from "../components/Footer";
+
 // Define TypeScript interfaces
 interface Progress {
   cModule: {
@@ -36,13 +37,96 @@ interface AuthContextType {
   fetchUserData: () => Promise<User | null>;
 }
 
+// Efficient debug utility for Dashboard page
+const debug = (() => {
+  const seenMessages = new Set<string>();
+  let lastLog = 0;
+  const MIN_LOG_INTERVAL = 1000; // Minimum ms between similar logs
+  
+  return (message: string, data?: unknown, isError = false) => {
+    // Skip logging in production
+    if (process.env.NODE_ENV !== "development") return;
+    
+    const now = Date.now();
+    // Create a deduplication key based on message and data
+    const dataStr = data ? 
+      (typeof data === "object" ? JSON.stringify(data) : String(data)) 
+      : "";
+    const key = `${message}:${dataStr}`;
+    
+    // Determine if this is an important message that should always be logged
+    const isImportant = 
+      isError || 
+      message.includes("error") || 
+      message.includes("auth") ||
+      message.includes("session") ||
+      message.includes("redirect");
+    
+    // Skip duplicate messages that happen too frequently
+    if (seenMessages.has(key) && now - lastLog < MIN_LOG_INTERVAL) return;
+    
+    // Skip non-important messages we've seen before
+    if (!isImportant && seenMessages.has(key)) return;
+    
+    // Update tracking
+    seenMessages.add(key);
+    lastLog = now;
+    
+    // Prevent memory leaks by clearing set periodically
+    if (seenMessages.size > 30) {
+      seenMessages.clear();
+    }
+    
+    // Format and output message
+    const logPrefix = `[Dashboard] ${message}`;
+    if (isError) {
+      console.error(logPrefix, data || "");
+    } else {
+      console.log(logPrefix, data || "");
+    }
+    
+    // Keep record of important logs for debugging
+    if (isImportant && typeof window !== 'undefined') {
+      try {
+        const logs = JSON.parse(
+          localStorage.getItem("dashboardLogs") || "[]"
+        );
+        
+        const timestamp = new Date().toISOString();
+        // Safely clone data to prevent circular reference issues
+        const safeData = typeof data === "object" && data !== null
+          ? JSON.parse(JSON.stringify(data))
+          : data;
+          
+        logs.push({ timestamp, message, data: safeData });
+        
+        // Limit logs storage
+        if (logs.length > 20) logs.shift();
+        localStorage.setItem("dashboardLogs", JSON.stringify(logs));
+      } catch (err) {
+        // Silent fail for localStorage errors
+      }
+    }
+  };
+})();
+
 export default function Dashboard() {
   const { user, fetchUserData } = useAuth() as AuthContextType;
-  console.log(user);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const isSessionChecking = useRef(false);
+  
   useEffect(() => {
     const checkAuthentication = async () => {
+      // Prevent duplicate API calls
+      if (isSessionChecking.current) {
+        debug("Session check already in progress, skipping duplicate request");
+        return;
+      }
+      
+      isSessionChecking.current = true;
+      debug("Checking user authentication status");
+      
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-session`,
@@ -53,22 +137,46 @@ export default function Dashboard() {
         );
 
         if (response.ok) {
+          debug("Session verification succeeded");
+          
           if (!user) {
+            debug("User not in context, fetching user data");
             await fetchUserData();
+          } else {
+            debug("User already in context", { 
+              username: user.username, 
+              role: user.role 
+            });
           }
         } else {
+          debug("Session verification failed, redirecting to home", { 
+            status: response.status 
+          }, true);
           router.push("/");
         }
       } catch (error) {
-        console.error("Error verifying session:", error);
+        debug("Error verifying session", error, true);
         router.push("/");
       } finally {
         setIsLoading(false);
+        isSessionChecking.current = false;
       }
     };
 
     checkAuthentication();
   }, [fetchUserData, user, router]);
+
+  // Log user data once after loading, not on every render
+  useEffect(() => {
+    if (!isLoading && user) {
+      debug("Dashboard loaded with user", { 
+        username: user.username,
+        role: user.role,
+        hasEmail: !!user.email,
+        progressLevel: user.progress?.cModule?.completed || 0
+      });
+    }
+  }, [isLoading, user]);
 
   if (isLoading) {
     return (
@@ -79,6 +187,7 @@ export default function Dashboard() {
   }
 
   if (!user) {
+    debug("No user available after loading, redirecting");
     return (
       <div className="min-h-screen bg-[#111827] flex items-center justify-center">
         <p className="text-white">Redirecting...</p>
@@ -92,6 +201,7 @@ export default function Dashboard() {
     notionsMastered: user.progress?.cModule?.completed || 0,
     daysLeft: 30 - (user.progress?.cModule?.completed || 0) * 3,
   };
+  
   return (
     <>
       <header className="bg-[#24292f] flex items-center justify-between p-4">
@@ -107,7 +217,7 @@ export default function Dashboard() {
           <Stats userStats={stats} />
         </div>
 
-        <div className=" hidden mb-10 pt-8">
+        <div className="hidden mb-10 pt-8">
           <Modules />
         </div>
 

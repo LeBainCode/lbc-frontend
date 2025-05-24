@@ -1,3 +1,4 @@
+// src/app/context/AuthContext.tsx
 "use client";
 import {
   createContext,
@@ -210,11 +211,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             );
 
             if (emailRes.ok) {
-              const allUsers: { id: string; email: string }[] =
-                await emailRes.json();
-              const matchedUser = allUsers.find((u) => u.id === baseUser.id);
-              if (matchedUser && matchedUser.email) {
-                baseUser.email = matchedUser.email;
+              try {
+                const response = await emailRes.json();
+                
+                // Extract the users array from the response
+                const usersData = response.users;
+                
+                if (Array.isArray(usersData)) {
+                  // Find user by username since the API returns username, not id
+                  const matchedUser = usersData.find(
+                    (u) => u.username === baseUser.username
+                  );
+                  
+                  if (matchedUser && matchedUser.email) {
+                    debug("Found matching email for user", { email: matchedUser.email });
+                    baseUser.email = matchedUser.email;
+                  } else {
+                    debug("No matching email found for user", { username: baseUser.username });
+                  }
+                } else {
+                  debug("Unexpected response format from /api/email/users/public", response);
+                }
+              } catch (parseError) {
+                debug("Error parsing email response", parseError);
               }
             } else {
               debug("Failed to fetch emails from /api/email/users/public", {

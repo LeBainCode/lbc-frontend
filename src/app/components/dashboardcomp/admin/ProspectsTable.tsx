@@ -53,9 +53,9 @@ export default function ProspectsTable({
             </tr>
           </thead>
           <tbody>
-            {filteredProspects.map((prospect) => (
+            {filteredProspects.map((prospect, index) => (
               <tr
-                key={prospect.email}
+                key={`${prospect.email}-${index}`}
                 className="border-t border-gray-700 hover:bg-[#2C3B4E] transition-colors"
               >
                 <td className="p-3">{prospect.email}</td>

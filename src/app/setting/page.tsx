@@ -61,16 +61,19 @@ export default function Settings() {
     <>
       <main className="min-h-screen bg-[#0D1117]">
         <Navbar />
+
         <div className="container mx-auto px-4 sm:px-6 pt-24 sm:pt-32">
           <div className="sm:w-[90vw] md:w-[80vw] lg:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto">
             <h1 className="text-4xl sm:text-6xl font-bold text-white mb-6">
               Settings
             </h1>
 
+            <p className="text-gray-400">Modify your settings here.</p>
+
             <div className="flex flex-col md:flex-row gap-6 bg-[#1F2937] rounded-lg shadow-xl overflow-hidden">
               {/* Tabs (left) */}
               <div className="flex flex-row md:flex-col gap-3 px-4 py-4 border-b md:border-b-0 md:border-r border-gray-700">
-                {["settings", "email", "password", "terms"].map((tab) => (
+                {["email", "password", "terms"].map((tab) => (
                   <button
                     key={tab}
                     className={`px-4 py-2 rounded ${
@@ -80,23 +83,17 @@ export default function Settings() {
                     }`}
                     onClick={() => setSelectedTab(tab)}
                   >
-                    {tab === "settings"
-                      ? "Settings"
-                      : tab === "email"
+                    {tab === "email"
                       ? "Email"
                       : tab === "password"
                       ? "Password"
-                      : "Terms & Services"}
+                      : "Terms"}
                   </button>
                 ))}
               </div>
 
               {/* Content (right) */}
               <div className="flex flex-col gap-4 p-4 w-full">
-                {selectedTab === "settings" && (
-                  <p className="text-gray-400">Modify your settings here.</p>
-                )}
-
                 {selectedTab === "email" && (
                   <>
                     <div className="flex flex-col sm:flex-row gap-2 items-center">
@@ -107,6 +104,13 @@ export default function Settings() {
                         onChange={(e) => setEmail(e.target.value)}
                         className="flex-1 px-3 py-2 bg-[#e6e6e6] text-[#252525] rounded border border-gray-600"
                       />
+                      <button
+                        className="px-4 py-2 bg-[#e6e6e6] text-[#252525] rounded hover:bg-[#9B7AA5]"
+                        onClick={handleChangePassword}
+                        disabled={!password}
+                      >
+                        Verify Email
+                      </button>
                       <button
                         className="px-4 py-2 bg-[#e6e6e6] text-[#252525] rounded hover:bg-[#9B7AA5]"
                         onClick={handleChangeEmail}
@@ -137,6 +141,13 @@ export default function Settings() {
                         onChange={(e) => setPassword(e.target.value)}
                         className="flex-1 px-3 py-2 bg-[#e6e6e6] text-[#252525] rounded border border-gray-600"
                       />
+                      <button
+                        className="px-4 py-2 bg-[#e6e6e6] text-[#252525] rounded hover:bg-[#9B7AA5]"
+                        onClick={handleChangePassword}
+                        disabled={!password}
+                      >
+                        Verify Password
+                      </button>
                       <button
                         className="px-4 py-2 bg-[#e6e6e6] text-[#252525] rounded hover:bg-[#9B7AA5]"
                         onClick={handleChangePassword}

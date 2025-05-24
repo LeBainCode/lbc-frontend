@@ -1,11 +1,6 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
-
-interface LogEntry {
-  timestamp: string;
-  message: string;
-  data?: unknown;
-}
+import { useState } from "react";
+import { debug } from "@/app/utils/debugLogger";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,139 +10,58 @@ interface AuthModalProps {
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Debug logger function
-  const debug = useCallback((message: string, data?: unknown) => {
-    const timestamp = new Date().toISOString();
-    const logMessage = `[${timestamp}] [AuthModal] ${message}`;
-
-    if (typeof window !== "undefined") {
-      if (data) {
-        console.group(logMessage);
-        console.log("Data:", data);
-        console.groupEnd();
-      } else {
-        console.log(logMessage);
-      }
-
-      try {
-        const logs = JSON.parse(
-          window.localStorage.getItem("authModalLogs") || "[]"
-        ) as LogEntry[];
-        logs.push({ timestamp, message, data });
-        window.localStorage.setItem("authModalLogs", JSON.stringify(logs));
-      } catch (error) {
-        console.warn("[AuthModal] LocalStorage not available:", error);
-      }
-    }
-  }, []);
-
-  // Initialize debugging on mount
-  useEffect(() => {
-    debug("Component mounted", {
-      isOpen,
-      environment: process.env.NODE_ENV,
-      apiUrl: process.env.NEXT_PUBLIC_API_URL,
-    });
-
-    const previousLogs = JSON.parse(
-      localStorage.getItem("authModalLogs") || "[]"
-    ) as LogEntry[];
-    if (previousLogs.length > 0) {
-      console.group("[AuthModal] Previous session logs");
-      previousLogs.forEach((log: LogEntry) => {
-        console.log(`[${log.timestamp}]`, log.message, log.data || "");
-      });
-      console.groupEnd();
-    }
-
-    return () => {
-      debug("Component unmounting");
-    };
-  }, [debug, isOpen]);
+  
+  // Log only once when modal opens/closes
+  if (isOpen) {
+    debug('AuthModal', 'Modal opened', null, { once: true });
+  }
 
   const handleGitHubAuth = () => {
-    debug("GitHub authentication initiated");
+    debug('AuthModal', 'GitHub auth initiated');
     setIsLoading(true);
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
 
-      debug("Auth configuration", {
-        apiUrl,
-        clientId: clientId ? "configured" : "missing",
-        environment: process.env.NODE_ENV,
-      });
-
       if (!apiUrl || !clientId) {
         throw new Error("Missing required configuration");
       }
 
+      // Store minimal auth attempt info
       if (typeof window !== "undefined") {
         try {
-          window.localStorage.setItem(
+          localStorage.setItem(
             "githubAuthAttempt",
             JSON.stringify({
               timestamp: new Date().toISOString(),
-              apiUrl,
-              environment: process.env.NODE_ENV,
             })
           );
         } catch (error) {
-          console.warn("Failed to store auth attempt:", error);
+          // Fail silently
         }
       }
 
       const authUrl = `${apiUrl}/api/auth/github`;
-      debug("Redirecting to auth endpoint", { authUrl });
-      window.location.href = authUrl; // <-- Redirection standard vers ton backend
+      window.location.href = authUrl;
     } catch (error) {
-      debug("Authentication error", error);
+      debug('AuthModal', 'Auth error', error, { important: true });
       setIsLoading(false);
       setError("Failed to initiate GitHub authentication");
     }
   };
 
-  // Monitor state changes
-  useEffect(() => {
-    debug("State updated", { isLoading, error, isOpen });
-  }, [debug, isLoading, error, isOpen]);
-
-  // Check API health when modal is open
-  useEffect(() => {
-    const checkApiHealth = async () => {
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${apiUrl}/api/auth/health`);
-        const data = await response.json();
-        debug("API health check", { status: response.status, data });
-      } catch (error) {
-        debug("API health check failed", error);
-      }
-    };
-
-    if (isOpen) {
-      checkApiHealth();
-    }
-  }, [debug, isOpen]);
-
   const handleClose = () => {
-    debug("Modal closing");
     onClose();
   };
 
-  if (!isOpen) {
-    debug("Modal not rendered (closed)");
-    return null;
-  }
+  if (!isOpen) return null;
 
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          debug("Backdrop clicked");
           handleClose();
         }
       }}

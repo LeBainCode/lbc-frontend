@@ -1,3 +1,4 @@
+// src/app/context/AuthContext.tsx
 "use client";
 import {
   createContext,
@@ -45,35 +46,76 @@ const isResponseData = (data: unknown): data is ResponseData => {
   );
 };
 
-const debug = (message: string, data?: unknown) => {
-  const timestamp = new Date().toISOString();
-  const safeData =
-    typeof data === "object" && data !== null
-      ? JSON.parse(JSON.stringify(data))
-      : data;
-
-  if (isResponseData(data) && data.status === 401) {
-    console.log(`[AuthContext] ${message} (Expected - User not authenticated)`);
-  } else {
-    console.log(`[AuthContext] ${message}`, safeData || "");
-  }
-
-  if (typeof window !== "undefined") {
-    try {
-      const logs = JSON.parse(
-        localStorage.getItem("authContextLogs") || "[]"
-      ) as LogEntry[];
-
-      logs.push({ timestamp, message, data: safeData });
-
-      if (logs.length > 50) logs.shift();
-      localStorage.setItem("authContextLogs", JSON.stringify(logs));
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.warn("[AuthContext] LocalStorage error:", errorMessage);
+// Optimized debug function with deduplication and rate limiting
+const debug = (() => {
+  const seenMessages = new Set<string>();
+  let lastLog = 0;
+  const MIN_LOG_INTERVAL = 1000; // minimum ms between similar logs
+  
+  return (message: string, data?: unknown) => {
+    // Skip in production
+    if (process.env.NODE_ENV !== "development") return;
+    
+    const now = Date.now();
+    const dataString = data ? 
+      (typeof data === "object" ? JSON.stringify(data) : String(data)) 
+      : "";
+    const key = `${message}:${dataString}`;
+    
+    // Determine if this is an important message
+    const isImportant = 
+      message.includes("authenticated") || 
+      message.includes("error") ||
+      message.includes("initialized") ||
+      message.includes("logout") ||
+      message.includes("token");
+    
+    // Skip duplicate messages that happen too frequently
+    if (seenMessages.has(key) && now - lastLog < MIN_LOG_INTERVAL) return;
+    
+    // Skip non-important messages that we've seen before
+    if (!isImportant && seenMessages.has(key)) return;
+    
+    // Update tracking
+    seenMessages.add(key);
+    lastLog = now;
+    
+    // Prevent memory leaks by clearing set periodically
+    if (seenMessages.size > 30) {
+      seenMessages.clear();
     }
-  }
-};
+    
+    // Format console output
+    if (isResponseData(data) && data.status === 401) {
+      console.log(`[AuthContext] ${message} (Expected - User not authenticated)`);
+    } else {
+      console.log(`[AuthContext] ${message}`, data || "");
+    }
+    
+    // Only store important logs in localStorage
+    if (isImportant && typeof window !== "undefined") {
+      try {
+        const logs = JSON.parse(
+          localStorage.getItem("authContextLogs") || "[]"
+        ) as LogEntry[];
+        
+        const timestamp = new Date().toISOString();
+        // Safely clone data for storage
+        const safeData = typeof data === "object" && data !== null
+          ? JSON.parse(JSON.stringify(data))
+          : data;
+          
+        logs.push({ timestamp, message, data: safeData });
+        
+        // Keep logs manageable
+        if (logs.length > 20) logs.shift();
+        localStorage.setItem("authContextLogs", JSON.stringify(logs));
+      } catch (err) {
+        // Silent fail for localStorage errors
+      }
+    }
+  };
+})();
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -99,6 +141,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Track if API request is in progress to prevent duplicates
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
 
   const logout = useCallback(() => {
     debug("Logging out user");
@@ -108,6 +153,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchUserData = async (): Promise<User | null> => {
+    // Prevent multiple simultaneous auth checks
+    if (isCheckingAuth) {
+      debug("Auth check already in progress, skipping duplicate request");
+      return user;
+    }
+    
+    setIsCheckingAuth(true);
+    
     try {
       debug("Checking authentication status");
 
@@ -125,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         debug("User not authenticated", { status: 401 });
         setUser(null);
         setIsLoading(false);
+        setIsCheckingAuth(false);
         return null;
       }
 
@@ -132,6 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         debug("API error response", { status: response.status });
         setError(`API error: ${response.status}`);
         setIsLoading(false);
+        setIsCheckingAuth(false);
         return null;
       }
 
@@ -156,11 +211,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             );
 
             if (emailRes.ok) {
-              const allUsers: { id: string; email: string }[] =
-                await emailRes.json();
-              const matchedUser = allUsers.find((u) => u.id === baseUser.id);
-              if (matchedUser && matchedUser.email) {
-                baseUser.email = matchedUser.email;
+              try {
+                const response = await emailRes.json();
+                
+                // Extract the users array from the response
+                const usersData = response.users;
+                
+                if (Array.isArray(usersData)) {
+                  // Find user by username since the API returns username, not id
+                  const matchedUser = usersData.find(
+                    (u) => u.username === baseUser.username
+                  );
+                  
+                  if (matchedUser && matchedUser.email) {
+                    debug("Found matching email for user", { email: matchedUser.email });
+                    baseUser.email = matchedUser.email;
+                  } else {
+                    debug("No matching email found for user", { username: baseUser.username });
+                  }
+                } else {
+                  debug("Unexpected response format from /api/email/users/public", response);
+                }
+              } catch (parseError) {
+                debug("Error parsing email response", parseError);
               }
             } else {
               debug("Failed to fetch emails from /api/email/users/public", {
@@ -179,11 +252,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         debug("User authenticated", baseUser);
         setUser(baseUser);
         setIsLoading(false);
+        setIsCheckingAuth(false);
         return baseUser;
       } else {
         debug("No authenticated user");
         setUser(null);
         setIsLoading(false);
+        setIsCheckingAuth(false);
         return null;
       }
     } catch (error: unknown) {
@@ -192,28 +267,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       debug("Error checking authentication", { error: errorMessage });
       setError("Failed to check authentication status");
       setIsLoading(false);
+      setIsCheckingAuth(false);
       return null;
     }
   };
 
+  // Initial authentication check
   useEffect(() => {
-    debug("Initializing auth state", {
-      apiUrl: process.env.NEXT_PUBLIC_API_URL,
-      environment: process.env.NODE_ENV,
-      isInitialLoad: true,
-    });
-    fetchUserData();
+    // Log once at startup, not on every render
+    if (isLoading) {
+      debug("Initializing auth state", {
+        apiUrl: process.env.NEXT_PUBLIC_API_URL,
+        environment: process.env.NODE_ENV,
+        isInitialLoad: true,
+      });
+      fetchUserData();
+    }
   }, []);
 
+  // Only log important state changes, not every render
   useEffect(() => {
-    debug("Auth state updated", {
-      isAuthenticated: !!user,
-      isLoading,
-      hasError: !!error,
-    });
-
+    const isAuthenticated = !!user;
+    const hasError = !!error;
+    
+    // Only log when something significant changes
+    if (!isLoading) {
+      debug("Auth state updated", {
+        isAuthenticated,
+        hasError,
+        userId: user?.id || null,
+      });
+    }
+    
     return () => {
-      debug("Cleaning up auth state");
+      // Only log cleanup once, not on every render
+      if (typeof window !== 'undefined' && window.onbeforeunload) {
+        debug("Cleaning up auth state");
+      }
     };
   }, [user, isLoading, error]);
 

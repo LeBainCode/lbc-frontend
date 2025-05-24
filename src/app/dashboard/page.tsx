@@ -4,13 +4,12 @@ import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Navbar from "../components/navcomp/Navbar";
-import Footer from "../components/Footer";
-import Link from "next/link";
-import Stats from "../components/dashboardcomp/Stats";
-import Modules from "../components/dashboardcomp/Modules";
-import AdminPanel from "../components/dashboardcomp/AdminPanel";
 import AlertPopup from "../components/dashboardcomp/AlertPopup";
 import Profil from "../components/dashboardcomp/Profil";
+import Modules from "../components/dashboardcomp/Modules";
+import Stats from "../components/dashboardcomp/Stats";
+import AdminPanel from "../components/dashboardcomp/AdminPanel";
+import Footer from "../components/Footer";
 // Define TypeScript interfaces
 interface Progress {
   cModule: {

@@ -37,7 +37,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               timestamp: new Date().toISOString(),
             })
           );
-        } catch (error) {
+        } catch (_error) {
           // Fail silently
         }
       }

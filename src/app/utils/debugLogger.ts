@@ -22,7 +22,7 @@ interface LogOptions {
 export function debug(
   component: string, 
   message: string, 
-  data?: any, 
+  data?: unknown, 
   options: LogOptions = {}
 ) {
   // Skip logging if debugging is disabled or component not enabled
@@ -73,7 +73,7 @@ export function debug(
       }
       
       localStorage.setItem('debugLogs', JSON.stringify(logs));
-    } catch (error) {
+    } catch (_error) {
       // Silent fail for localStorage errors
     }
   }

@@ -103,7 +103,7 @@ const debug = (() => {
         // Limit logs storage
         if (logs.length > 20) logs.shift();
         localStorage.setItem("dashboardLogs", JSON.stringify(logs));
-      } catch (err) {
+      } catch (_err) {
         // Silent fail for localStorage errors
       }
     }

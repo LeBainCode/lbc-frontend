@@ -7,7 +7,9 @@ interface BetaTesterPopupProps {
   isBetaTester: boolean;
 }
 
-export default function BetaTesterPopup({ isBetaTester }: BetaTesterPopupProps) {
+export default function BetaTesterPopup({
+  isBetaTester,
+}: BetaTesterPopupProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -41,7 +43,9 @@ export default function BetaTesterPopup({ isBetaTester }: BetaTesterPopupProps) 
 
         <div className="text-gray-300 space-y-4">
           <p>
-            Merci de participer à l'amélioration de notre plateforme. Vous avez accès à l'espace dédié aux beta testeurs pour nous faire part de vos retours !
+            Merci de participer à l'amélioration de notre plateforme. Vous avez
+            accès à l'espace dédié aux beta testeurs pour nous faire part de vos
+            retours !
           </p>
 
           <div className="bg-[#374151] p-4 rounded-lg">
@@ -64,3 +68,8 @@ export default function BetaTesterPopup({ isBetaTester }: BetaTesterPopupProps) 
           >
             Fermer
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}

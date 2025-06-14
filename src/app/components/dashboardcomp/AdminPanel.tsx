@@ -11,15 +11,21 @@ import {
   UsersIcon,
   ChartBarIcon,
   LinkIcon,
-  UserPlusIcon
+  UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import AnalyticsSection from "./AnalyticsSection";
 import BetaUsersTable from "./admin/BetaUsersTable";
 
 // Mailchimp service for email notifications
-const sendMailchimpEmail = async (type: 'approval' | 'rejection', email: string, username: string) => {
-  console.log(`[Mailchimp] Sending ${type} email to ${email} for user ${username}`);
-  
+const sendMailchimpEmail = async (
+  type: "approval" | "rejection",
+  email: string,
+  username: string
+) => {
+  console.log(
+    `[Mailchimp] Sending ${type} email to ${email} for user ${username}`
+  );
+
   // This is a placeholder - will be replaced with actual Mailchimp API integration
   try {
     // In a real implementation, this would call the Mailchimp API
@@ -35,23 +41,23 @@ const sendMailchimpEmail = async (type: 'approval' | 'rejection', email: string,
 const debugAdmin = (() => {
   const seenMessages = new Set<string>();
   let lastLog = 0;
-  
+
   return (message: string, data?: unknown, isError = false) => {
     if (process.env.NODE_ENV !== "development") return;
-    
+
     const now = Date.now();
-    const key = `${message}:${JSON.stringify(data || '')}`;
-    
+    const key = `${message}:${JSON.stringify(data || "")}`;
+
     if (seenMessages.has(key) && now - lastLog < 1000) return;
     seenMessages.add(key);
     lastLog = now;
-    
+
     if (seenMessages.size > 30) seenMessages.clear();
-    
+
     if (isError) {
-      console.error(`[AdminPanel] ${message}`, data || '');
+      console.error(`[AdminPanel] ${message}`, data || "");
     } else {
-      console.log(`[AdminPanel] ${message}`, data || '');
+      console.log(`[AdminPanel] ${message}`, data || "");
     }
   };
 })();
@@ -65,7 +71,7 @@ interface BetaApplication {
   reason: string;
   occupation: string;
   discordId?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   appliedAt: string;
   decidedAt?: string;
 }
@@ -75,7 +81,9 @@ export default function AdminPanel() {
   const [userCount, setUserCount] = useState<number | null>(null);
   const [regularUsers, setRegularUsers] = useState<RegularUser[]>([]);
   const [prospects, setProspects] = useState<Prospect[]>([]);
-  const [betaApplications, setBetaApplications] = useState<BetaApplication[]>([]);
+  const [betaApplications, setBetaApplications] = useState<BetaApplication[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [loadingBeta, setLoadingBeta] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +101,7 @@ export default function AdminPanel() {
     try {
       if (apiCallInProgress.current) return;
       apiCallInProgress.current = true;
-      
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
       // Fetch users
@@ -119,14 +127,22 @@ export default function AdminPanel() {
       const usersData = await usersResponse.json();
       const prospectsData = await prospectsResponse.json();
 
-      setRegularUsers(usersData);
-      setUserCount(usersData.length);
-      setProspects(prospectsData);
+      // Ensure usersData is an array
+      const safeUsersData = Array.isArray(usersData) ? usersData : [];
+      const safeProspectsData = Array.isArray(prospectsData)
+        ? prospectsData
+        : [];
+
+      setRegularUsers(safeUsersData);
+      setUserCount(safeUsersData.length);
+      setProspects(safeProspectsData);
     } catch (error) {
       console.error("Error:", error);
-      setError(
-        error instanceof Error ? error.message : "Failed to load data"
-      );
+      setError(error instanceof Error ? error.message : "Failed to load data");
+      // Set safe defaults on error
+      setRegularUsers([]);
+      setProspects([]);
+      setUserCount(0);
     } finally {
       setIsLoading(false);
       apiCallInProgress.current = false;
@@ -138,51 +154,63 @@ export default function AdminPanel() {
     try {
       setLoadingBeta(true);
       setBetaError(null);
-      
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(`${apiUrl}/api/beta/applications`, {
-        credentials: "include"
+        credentials: "include",
       });
-      
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch beta applications: ${response.status}`);
+        throw new Error(
+          `Failed to fetch beta applications: ${response.status}`
+        );
       }
-      
+
       const data = await response.json();
       setBetaApplications(data);
       debugAdmin("Fetched beta applications", { count: data.length });
     } catch (error) {
       debugAdmin("Error fetching beta applications", error, true);
-      setBetaError(error instanceof Error ? error.message : "Failed to load beta applications");
+      setBetaError(
+        error instanceof Error
+          ? error.message
+          : "Failed to load beta applications"
+      );
     } finally {
       setLoadingBeta(false);
     }
   };
 
   // Handle beta application approval
-  const handleApprovalBeta = async (applicationId: string, userId: string, email: string) => {
+  const handleApprovalBeta = async (
+    applicationId: string,
+    userId: string,
+    email: string
+  ) => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       debugAdmin("Approving beta access", { userId, email });
-      
+
       const response = await fetch(`${apiUrl}/api/beta/approve/${userId}`, {
         method: "POST",
         credentials: "include",
         headers: {
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to approve beta access: ${response.status}`);
       }
-      
+
       // Get username for the email
-      const username = betaApplications.find(app => app._id === applicationId)?.username || email.split('@')[0];
-      
+      const username =
+        betaApplications.find((app) => app._id === applicationId)?.username ||
+        email.split("@")[0];
+
       // Send approval email via Mailchimp
-      await sendMailchimpEmail('approval', email, username);
-      
+      await sendMailchimpEmail("approval", email, username);
+
       // Refresh data after approval
       fetchBetaApplications();
     } catch (error) {
@@ -190,31 +218,37 @@ export default function AdminPanel() {
       throw error;
     }
   };
-  
+
   // Handle beta application rejection
-  const handleRejectionBeta = async (applicationId: string, userId: string, email: string) => {
+  const handleRejectionBeta = async (
+    applicationId: string,
+    userId: string,
+    email: string
+  ) => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       debugAdmin("Rejecting beta access", { userId, email });
-      
+
       const response = await fetch(`${apiUrl}/api/beta/revoke/${userId}`, {
         method: "POST",
         credentials: "include",
         headers: {
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to reject beta access: ${response.status}`);
       }
-      
+
       // Get username for the email
-      const username = betaApplications.find(app => app._id === applicationId)?.username || email.split('@')[0];
-      
+      const username =
+        betaApplications.find((app) => app._id === applicationId)?.username ||
+        email.split("@")[0];
+
       // Send rejection email via Mailchimp
-      await sendMailchimpEmail('rejection', email, username);
-      
+      await sendMailchimpEmail("rejection", email, username);
+
       // Refresh data after rejection
       fetchBetaApplications();
     } catch (error) {
@@ -247,7 +281,16 @@ export default function AdminPanel() {
       setProspects(
         prospects.map((p) =>
           p.email === email
-            ? { ...p, type: type as "individual" | "organization" | "other" | "bot" | "spam" | "developmentTest" }
+            ? {
+                ...p,
+                type: type as
+                  | "individual"
+                  | "organization"
+                  | "other"
+                  | "bot"
+                  | "spam"
+                  | "developmentTest",
+              }
             : p
         )
       );
@@ -367,19 +410,21 @@ export default function AdminPanel() {
                 <div className="bg-gray-700/50 p-4 rounded-lg">
                   <p className="text-sm text-gray-400">Total Users</p>
                   <p className="text-2xl font-bold text-white">
-                    {regularUsers.length}
+                    {Array.isArray(regularUsers) ? regularUsers.length : 0}
                   </p>
                 </div>
                 <div className="bg-gray-700/50 p-4 rounded-lg">
                   <p className="text-sm text-gray-400">Users with Email</p>
                   <p className="text-2xl font-bold text-white">
-                    {regularUsers.filter((user) => user.email).length}
+                    {Array.isArray(regularUsers)
+                      ? regularUsers.filter((user) => user.email).length
+                      : 0}
                   </p>
                 </div>
                 <div className="bg-gray-700/50 p-4 rounded-lg">
                   <p className="text-sm text-gray-400">Email Conversion Rate</p>
                   <p className="text-2xl font-bold text-white">
-                    {regularUsers.length > 0
+                    {Array.isArray(regularUsers) && regularUsers.length > 0
                       ? `${(
                           (regularUsers.filter((user) => user.email).length /
                             regularUsers.length) *
@@ -409,6 +454,8 @@ export default function AdminPanel() {
 
             <div className="overflow-x-auto">
               {!showNoEmail ? (
+                // Afficher seulement les utilisateurs avec email
+                Array.isArray(regularUsers) &&
                 regularUsers.filter((user) => user.email).length > 0 ? (
                   <table className="min-w-full divide-y divide-gray-700">
                     <thead className="bg-gray-800">
@@ -450,7 +497,8 @@ export default function AdminPanel() {
                     No regular users with an email address currently
                   </div>
                 )
-              ) : (
+              ) : // Afficher tous les utilisateurs
+              Array.isArray(regularUsers) && regularUsers.length > 0 ? (
                 <table className="min-w-full divide-y divide-gray-700">
                   <thead className="bg-gray-800">
                     <tr>
@@ -484,6 +532,10 @@ export default function AdminPanel() {
                     ))}
                   </tbody>
                 </table>
+              ) : (
+                <div className="text-center py-8 text-gray-400">
+                  {isLoading ? "Loading users..." : "No users found"}
+                </div>
               )}
             </div>
           </div>
@@ -500,10 +552,11 @@ export default function AdminPanel() {
               Beta Program Management
             </h3>
             <p className="text-gray-400 mb-6">
-              Review and manage applications for the beta program. Approve or reject applications 
-              and monitor the status of users with beta access.
+              Review and manage applications for the beta program. Approve or
+              reject applications and monitor the status of users with beta
+              access.
             </p>
-            
+
             <BetaUsersTable
               applications={betaApplications}
               isLoading={loadingBeta}

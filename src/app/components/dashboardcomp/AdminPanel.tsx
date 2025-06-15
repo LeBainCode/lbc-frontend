@@ -449,24 +449,69 @@ export default function AdminPanel() {
         <Tab.Panels className="mt-4">
           <Tab.Panel>
             {/* Users Panel */}
-            <div className="space-y-4">
-              <UserCount count={userCount} isLoading={isLoading} error={error} />
-              {/* ... reste du contenu Users ... */}
+            <div className="space-y-6">
+              <div className="bg-gray-800/50 rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-white mb-4">
+                  User Statistics
+                </h3>
+                <div className="space-y-4">
+                  <UserCount count={userCount} isLoading={isLoading} error={error} />
+                </div>
+              </div>
+              <div className="bg-gray-800/50 rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-white mb-4">
+                  Conversion Metrics
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-gray-700/50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-400">Total Users</p>
+                    <p className="text-2xl font-bold text-white">
+                      {Array.isArray(regularUsers) ? regularUsers.length : 0}
+                    </p>
+                  </div>
+                  <div className="bg-gray-700/50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-400">Users with Email</p>
+                    <p className="text-2xl font-bold text-white">
+                      {Array.isArray(regularUsers)
+                        ? regularUsers.filter((user) => user.email).length
+                        : 0}
+                    </p>
+                  </div>
+                  <div className="bg-gray-700/50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-400">Email Conversion Rate</p>
+                    <p className="text-2xl font-bold text-white">
+                      {Array.isArray(regularUsers) && regularUsers.length > 0
+                        ? `${(
+                            (regularUsers.filter((user) => user.email).length /
+                              regularUsers.length) *
+                            100
+                          ).toFixed(1)}%`
+                        : "0%"}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </Tab.Panel>
           <Tab.Panel>
             {/* Prospects Panel */}
-            <div className="space-y-4">
-              <ProspectsTable
-                prospects={prospects}
-                onTypeChange={handleTypeChange}
-                onReachedOutChange={handleReachedOutChange}
-                onCommentChange={handleCommentChange}
-                selectedType={selectedType}
-                setSelectedType={setSelectedType}
-                showNoEmail={showNoEmail}
-                setShowNoEmail={setShowNoEmail}
-              />
+            <div className="space-y-6">
+              <div className="bg-gray-800/50 rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-white mb-4">
+                  Prospect Management
+                </h3>
+                <ProspectsTable
+                  prospects={prospects}
+                  selectedType={selectedType}
+                  onFilterChange={setSelectedType}
+                  onTypeChange={handleTypeChange}
+                  onReachedOutChange={handleReachedOutChange}
+                  onCommentChange={handleCommentChange}
+                  setSelectedType={setSelectedType}
+                  showNoEmail={showNoEmail}
+                  setShowNoEmail={setShowNoEmail}
+                />
+              </div>
             </div>
           </Tab.Panel>
           <Tab.Panel>
@@ -475,21 +520,33 @@ export default function AdminPanel() {
           </Tab.Panel>
           <Tab.Panel>
             {/* Beta Program Panel */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="bg-gray-800/50 rounded-lg p-6">
                 <h3 className="text-xl font-semibold text-white mb-4">
-                  Beta Program Administration
+                  Beta Program Management
                 </h3>
-                <p className="text-gray-400 mb-4">
-                  Manage beta testers and their applications. View, approve, or reject applications.
+                <p className="text-gray-400 mb-6">
+                  Review and manage applications for the beta program. Approve or
+                  reject applications and monitor the status of users with beta
+                  access.
                 </p>
-                <button
-                  onClick={() => router.push("/admin/beta")}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                >
-                  <BeakerIcon className="h-5 w-5 mr-2" />
-                  Go to Beta Administration
-                </button>
+                <div className="flex flex-col space-y-4">
+                  <BetaUsersTable
+                    applications={betaApplications}
+                    isLoading={loadingBeta}
+                    error={betaError}
+                    onApprove={handleApprovalBeta}
+                    onReject={handleRejectionBeta}
+                    refreshData={fetchBetaApplications}
+                  />
+                  <button
+                    onClick={() => router.push("/admin/beta")}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  >
+                    <BeakerIcon className="h-5 w-5 mr-2" />
+                    Go to Beta Administration
+                  </button>
+                </div>
               </div>
             </div>
           </Tab.Panel>

@@ -67,7 +67,7 @@ export default function BetaUsersTable({
   const [expandedReason, setExpandedReason] = useState<string | null>(null);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState<Record<string, boolean>>({});
-  const [error: string | null, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Fix: Ensure applications is always an array
   const safeApplications: BetaApplication[] = Array.isArray(applications) ? applications : [];

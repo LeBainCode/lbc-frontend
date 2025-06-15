@@ -39,6 +39,9 @@ interface ProspectsTableProps {
   onReachedOutChange: (email: string, reachedOut: boolean) => void;
   onCommentChange: (email: string, comment: string) => void;
   onFilterChange: (type: string) => void;
+  setSelectedType: (type: string) => void;
+  showNoEmail: boolean;
+  setShowNoEmail: (show: boolean) => void;
 }
 
 export default function ProspectsTable({
@@ -48,6 +51,9 @@ export default function ProspectsTable({
   onReachedOutChange,
   onCommentChange,
   onFilterChange,
+  setSelectedType,
+  showNoEmail,
+  setShowNoEmail,
 }: ProspectsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());

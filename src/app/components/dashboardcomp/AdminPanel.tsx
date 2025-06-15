@@ -17,6 +17,7 @@ import {
 import AnalyticsSection from "./AnalyticsSection";
 import BetaUsersTable from "./admin/BetaUsersTable";
 import { useRouter } from "next/navigation";
+import { classNames } from "@/lib/utils";
 
 // Mailchimp service for email notifications
 const sendMailchimpEmail = async (
@@ -94,6 +95,13 @@ export default function AdminPanel() {
   const [showNoEmail, setShowNoEmail] = useState(true);
   const apiCallInProgress = useRef(false);
   const router = useRouter();
+  const [admins, setAdmins] = useState<any[]>([]);
+  const [showAddAdminModal, setShowAddAdminModal] = useState(false);
+  const [newAdminData, setNewAdminData] = useState({
+    username: "",
+    email: "",
+    role: "admin"
+  });
 
   const getApiUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL;
@@ -108,6 +116,16 @@ export default function AdminPanel() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      // Fetch user count
+      const userCountResponse = await fetch(`${apiUrl}/api/admin/users/count`, {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        signal: controller.signal
+      });
 
       // Fetch users
       const usersResponse = await fetch(`${apiUrl}/api/admin/users`, {
@@ -129,27 +147,41 @@ export default function AdminPanel() {
         signal: controller.signal
       });
 
+      // Fetch admins
+      const adminsResponse = await fetch(`${apiUrl}/api/admin/admins`, {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        signal: controller.signal
+      });
+
       clearTimeout(timeoutId);
 
-      if (usersResponse.status === 401 || prospectsResponse.status === 401) {
+      if (userCountResponse.status === 401 || usersResponse.status === 401 || 
+          prospectsResponse.status === 401 || adminsResponse.status === 401) {
         debugAdmin("Authentication required", null, true);
         router.push("/login");
         return;
       }
 
-      if (!usersResponse.ok || !prospectsResponse.ok) {
-        throw new Error(`Failed to fetch data: ${usersResponse.status} ${prospectsResponse.status}`);
+      if (!userCountResponse.ok || !usersResponse.ok || !prospectsResponse.ok || !adminsResponse.ok) {
+        throw new Error(`Failed to fetch data: ${userCountResponse.status} ${usersResponse.status} ${prospectsResponse.status} ${adminsResponse.status}`);
       }
 
+      const userCountData = await userCountResponse.json();
       const usersData = await usersResponse.json();
       const prospectsData = await prospectsResponse.json();
+      const adminsData = await adminsResponse.json();
 
-      // Ensure usersData is an array
+      // Ensure data is in the correct format
       const safeUsersData = Array.isArray(usersData) ? usersData : [];
       const safeProspectsData = Array.isArray(prospectsData) ? prospectsData : [];
+      const safeAdminsData = Array.isArray(adminsData) ? adminsData : [];
 
       setRegularUsers(safeUsersData);
-      setUserCount(safeUsersData.length);
+      setUserCount(userCountData.count || safeUsersData.length);
       setProspects(safeProspectsData);
       setError(null);
     } catch (error) {
@@ -387,6 +419,43 @@ export default function AdminPanel() {
     }
   };
 
+  // Function to handle admin user management
+  const handleAdminAction = async (action: 'create' | 'update' | 'delete', adminId?: string, data?: any) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      let endpoint = `${apiUrl}/api/admin/admins`;
+      let method = 'POST';
+
+      if (action === 'update' && adminId) {
+        endpoint = `${apiUrl}/api/admin/admins/${adminId}`;
+        method = 'PUT';
+      } else if (action === 'delete' && adminId) {
+        endpoint = `${apiUrl}/api/admin/admins/${adminId}`;
+        method = 'DELETE';
+      }
+
+      const response = await fetch(endpoint, {
+        method,
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: data ? JSON.stringify(data) : undefined
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${action} admin: ${response.status}`);
+      }
+
+      // Refresh data after successful action
+      fetchData();
+    } catch (error) {
+      console.error(`Error ${action}ing admin:`, error);
+      setError(error instanceof Error ? error.message : `Failed to ${action} admin`);
+    }
+  };
+
   // Load data when component mounts
   useEffect(() => {
     if (user?.role === "admin") {
@@ -408,66 +477,58 @@ export default function AdminPanel() {
   return (
     <div className="w-full max-w-[90vw] sm:w-[80vw] md:w-[70vw] xl:w-[60vw] 2xl:w-[50vw] mx-auto">
       <Tab.Group>
-        <Tab.List className="flex space-x-1 rounded-xl bg-gray-800/50 p-1">
+        <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
           <Tab
             className={({ selected }) =>
-              `w-full rounded-lg py-2.5 text-sm font-medium leading-5
-              ${
+              classNames(
+                "w-full rounded-lg py-2.5 text-sm font-medium leading-5",
+                "ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2",
                 selected
-                  ? "bg-purple-600 text-white shadow"
-                  : "text-gray-400 hover:bg-gray-700 hover:text-white"
-              }`
+                  ? "bg-white text-blue-700 shadow"
+                  : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
+              )
             }
           >
-            <div className="flex items-center justify-center space-x-2">
-              <UserGroupIcon className="h-5 w-5" />
-              <span>Users</span>
-            </div>
+            Users
           </Tab>
           <Tab
             className={({ selected }) =>
-              `w-full rounded-lg py-2.5 text-sm font-medium leading-5
-              ${
+              classNames(
+                "w-full rounded-lg py-2.5 text-sm font-medium leading-5",
+                "ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2",
                 selected
-                  ? "bg-purple-600 text-white shadow"
-                  : "text-gray-400 hover:bg-gray-700 hover:text-white"
-              }`
+                  ? "bg-white text-blue-700 shadow"
+                  : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
+              )
             }
           >
-            <div className="flex items-center justify-center space-x-2">
-              <UsersIcon className="h-5 w-5" />
-              <span>Prospects</span>
-            </div>
+            Prospects
           </Tab>
           <Tab
             className={({ selected }) =>
-              `w-full rounded-lg py-2.5 text-sm font-medium leading-5
-              ${
+              classNames(
+                "w-full rounded-lg py-2.5 text-sm font-medium leading-5",
+                "ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2",
                 selected
-                  ? "bg-purple-600 text-white shadow"
-                  : "text-gray-400 hover:bg-gray-700 hover:text-white"
-              }`
+                  ? "bg-white text-blue-700 shadow"
+                  : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
+              )
             }
           >
-            <div className="flex items-center justify-center space-x-2">
-              <ChartBarIcon className="h-5 w-5" />
-              <span>Analytics</span>
-            </div>
+            Beta Program
           </Tab>
           <Tab
             className={({ selected }) =>
-              `w-full rounded-lg py-2.5 text-sm font-medium leading-5
-              ${
+              classNames(
+                "w-full rounded-lg py-2.5 text-sm font-medium leading-5",
+                "ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2",
                 selected
-                  ? "bg-purple-600 text-white shadow"
-                  : "text-gray-400 hover:bg-gray-700 hover:text-white"
-              }`
+                  ? "bg-white text-blue-700 shadow"
+                  : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
+              )
             }
           >
-            <div className="flex items-center justify-center space-x-2">
-              <BeakerIcon className="h-5 w-5" />
-              <span>Beta Program</span>
-            </div>
+            Admins
           </Tab>
         </Tab.List>
         <Tab.Panels className="mt-4">
@@ -574,8 +635,99 @@ export default function AdminPanel() {
               </div>
             </div>
           </Tab.Panel>
+          <Tab.Panel>
+            {/* Admins Panel */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Admin Users</h2>
+                <button
+                  onClick={() => setShowAddAdminModal(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Add Admin
+                </button>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {admins.map((admin) => (
+                      <tr key={admin.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">{admin.username}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{admin.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{admin.role}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => handleAdminAction('delete', admin.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>
+
+      {/* Add Admin Modal */}
+      {showAddAdminModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Add New Admin</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Username</label>
+                <input
+                  type="text"
+                  value={newAdminData.username}
+                  onChange={(e) => setNewAdminData({ ...newAdminData, username: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  value={newAdminData.email}
+                  onChange={(e) => setNewAdminData({ ...newAdminData, email: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowAddAdminModal(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    handleAdminAction('create', undefined, newAdminData);
+                    setShowAddAdminModal(false);
+                    setNewAdminData({ username: "", email: "", role: "admin" });
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Add Admin
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

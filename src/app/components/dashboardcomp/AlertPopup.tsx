@@ -1,29 +1,38 @@
 // src/app/components/AlertPopup.tsx
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface AlertPopupProps {
   hasEmail: boolean;
+  isAdmin: boolean;
 }
 
-export default function AlertPopup({ hasEmail }: AlertPopupProps) {
+export default function AlertPopup({ hasEmail, isAdmin }: AlertPopupProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     // Show popup after 5 seconds of landing on dashboard
+    if (isAdmin) return; // Do not show popup for admins
+
     const timer = setTimeout(() => {
       setIsOpen(true);
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, []); // Empty dependency array means this runs once when component mounts
+  }, [isAdmin]); // Add isAdmin to dependency array
 
   const handleClose = () => {
     setIsOpen(false);
   };
 
-  if (!isOpen) return null;
+  const handleJoinBeta = () => {
+    router.push("/beta");
+  };
+
+  if (!isOpen || isAdmin) return null; // Also hide if isAdmin is true
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -39,7 +48,7 @@ export default function AlertPopup({ hasEmail }: AlertPopupProps) {
             ✕
           </button>
         </div>
-
+        
         <div className="text-gray-300 space-y-4">
           <p>
             Welcome to LeBainCode! Our platform is currently in development, and
@@ -97,12 +106,18 @@ export default function AlertPopup({ hasEmail }: AlertPopupProps) {
           </p>
         </div>
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex justify-end space-x-3">
           <button
             onClick={handleClose}
+            className="bg-[#374151] text-white px-4 py-2 rounded hover:bg-[#4B5563] transition-colors"
+          >
+            No, thanks
+          </button>
+          <button
+            onClick={handleJoinBeta}
             className="bg-[#BF9ACA] text-white px-4 py-2 rounded hover:bg-opacity-90 transition-colors"
           >
-            Got it!
+            Yes, let me in!
           </button>
         </div>
       </div>

@@ -1,10 +1,12 @@
+import React from 'react';
+
 interface UserCountProps {
     count: number | null;
-    isLoading: boolean;
-    error: string | null;
+    isLoading?: boolean;
+    error?: string | null;
 }
 
-export default function UserCount({ count, isLoading, error }: UserCountProps) {
+const UserCount: React.FC<UserCountProps> = ({ count, isLoading = false, error = null }) => {
     return (
         <div className="bg-[#374151] rounded-lg p-4 mb-6">
             {isLoading ? (
@@ -22,3 +24,5 @@ export default function UserCount({ count, isLoading, error }: UserCountProps) {
         </div>
     );
 }
+
+export default UserCount;

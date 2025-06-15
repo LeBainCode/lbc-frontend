@@ -35,9 +35,9 @@ const debugProspects = (() => {
 interface ProspectsTableProps {
   prospects: Prospect[];
   selectedType: string;
-  onTypeChange: (email: string, type: string) => void;
-  onReachedOutChange: (email: string, reachedOut: boolean) => void;
-  onCommentChange: (email: string, comment: string) => void;
+  onTypeChange: (email: string, type: string) => Promise<void>;
+  onReachedOutChange: (email: string, reachedOut: boolean) => Promise<void>;
+  onCommentChange: (email: string, comment: string) => Promise<void>;
   onFilterChange: (type: string) => void;
   setSelectedType: (type: string) => void;
   showNoEmail: boolean;

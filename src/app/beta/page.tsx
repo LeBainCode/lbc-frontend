@@ -2,11 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { BeakerIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function BetaPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -14,6 +16,13 @@ export default function BetaPage() {
     discordId: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    }
+  }, [user, router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -27,11 +36,12 @@ export default function BetaPage() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/beta/apply`, {
+      const response = await fetch(`${apiUrl}/api/beta/applications`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 

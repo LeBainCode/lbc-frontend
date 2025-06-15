@@ -450,7 +450,7 @@ export default function AdminPanel() {
           <Tab.Panel>
             {/* Users Panel */}
             <div className="space-y-4">
-              <UserCount count={userCount} />
+              <UserCount count={userCount} isLoading={isLoading} error={error} />
               {/* ... reste du contenu Users ... */}
             </div>
           </Tab.Panel>

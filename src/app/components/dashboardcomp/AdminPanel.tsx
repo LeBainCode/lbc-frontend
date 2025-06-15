@@ -583,10 +583,10 @@ export default function AdminPanel() {
             <ProspectsTable
               prospects={prospects}
               selectedType={selectedType}
+              onFilterChange={setSelectedType}
               onTypeChange={handleTypeChange}
               onReachedOutChange={handleReachedOutChange}
               onCommentChange={handleCommentChange}
-              onFilterChange={setSelectedType}
               setSelectedType={setSelectedType}
               showNoEmail={showNoEmail}
               setShowNoEmail={setShowNoEmail}

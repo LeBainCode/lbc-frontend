@@ -36,7 +36,7 @@ export default function BetaPage() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/beta/applications`, {
+      const response = await fetch(`${apiUrl}/api/beta/apply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,26 +46,16 @@ export default function BetaPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit application.");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to submit application.");
       }
-
-      // Simulate sending confirmation email (backend should handle this)
-      // const emailResponse = await fetch("/api/email/beta/confirmation", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email: formData.email, username: formData.discordId }),
-      // });
-
-      // if (!emailResponse.ok) {
-      //   throw new Error("Failed to send confirmation email.");
-      // }
 
       toast.success("Application submitted! Check your email for confirmation.");
       setShowForm(false); // Hide form after submission
       setFormData({ email: "", occupation: "", discordId: "" }); // Clear form
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error submitting beta application:", error);
-      toast.error(error.message || "Failed to submit application. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Failed to submit application. Please try again.");
     } finally {
       setIsLoading(false);
     }

@@ -16,6 +16,7 @@ import {
 } from "@heroicons/react/24/outline";
 import AnalyticsSection from "./AnalyticsSection";
 import BetaUsersTable from "./admin/BetaUsersTable";
+import { useRouter } from "next/navigation";
 
 // Mailchimp service for email notifications
 const sendMailchimpEmail = async (
@@ -92,6 +93,7 @@ export default function AdminPanel() {
   const [selectedType, setSelectedType] = useState<string>("all");
   const [showNoEmail, setShowNoEmail] = useState(true);
   const apiCallInProgress = useRef(false);
+  const router = useRouter();
 
   const getApiUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL;
@@ -528,14 +530,23 @@ export default function AdminPanel() {
                   reject applications and monitor the status of users with beta
                   access.
                 </p>
-                <BetaUsersTable
-                  applications={betaApplications}
-                  isLoading={loadingBeta}
-                  error={betaError}
-                  onApprove={handleApprovalBeta}
-                  onReject={handleRejectionBeta}
-                  refreshData={fetchBetaApplications}
-                />
+                <div className="flex flex-col space-y-4">
+                  <BetaUsersTable
+                    applications={betaApplications}
+                    isLoading={loadingBeta}
+                    error={betaError}
+                    onApprove={handleApprovalBeta}
+                    onReject={handleRejectionBeta}
+                    refreshData={fetchBetaApplications}
+                  />
+                  <button
+                    onClick={() => router.push("/admin/beta")}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  >
+                    <BeakerIcon className="h-5 w-5 mr-2" />
+                    Go to Beta Administration
+                  </button>
+                </div>
               </div>
             </div>
           </Tab.Panel>

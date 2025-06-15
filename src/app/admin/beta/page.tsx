@@ -87,7 +87,7 @@ export default function BetaAdminPage() {
       setTotalPages(data.totalPages || 1);
     } catch (error) {
       console.error("Error fetching applicants:", error);
-      toast.error("Failed to load applicants");
+      toast.error(error instanceof Error ? error.message : "Failed to load applicants");
       setApplicants([]);
       setTotalPages(1);
     } finally {
@@ -115,13 +115,22 @@ export default function BetaAdminPage() {
       }
 
       // Update status in backend
-      const response = await fetch(`${apiUrl}/api/beta/${newStatus}/${applicantId}`, {
+      const endpoint = newStatus === "accepted" 
+        ? `/api/beta/approve/${applicantId}`
+        : `/api/beta/reject/${applicantId}`;
+
+      const response = await fetch(`${apiUrl}${endpoint}`, {
         method: "POST",
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        }
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to update status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to ${newStatus} application`);
       }
 
       // Send email
@@ -141,9 +150,12 @@ export default function BetaAdminPage() {
       toast.success(
         `Successfully ${newStatus === "accepted" ? "accepted" : "rejected"} applicant`
       );
+
+      // Refresh the list
+      fetchApplicants();
     } catch (error) {
       console.error("Error updating status:", error);
-      toast.error("Failed to update applicant status");
+      toast.error(error instanceof Error ? error.message : "Failed to update applicant status");
     } finally {
       setLoading((prev) => ({ ...prev, [applicantId]: false }));
     }

@@ -67,7 +67,7 @@ export default function BetaUsersTable({
   const [expandedReason, setExpandedReason] = useState<string | null>(null);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState<Record<string, boolean>>({});
-  const [error, setError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   // Fix: Ensure applications is always an array
   const safeApplications: BetaApplication[] = Array.isArray(applications) ? applications : [];
@@ -88,9 +88,9 @@ export default function BetaUsersTable({
       return new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime();
     });
 
-  // Count applications by status - Fixed to use safeApplications
-  const counts = {
-    all: safeApplications.length,
+  // Calculate statistics
+  const stats = {
+    total: safeApplications.length,
     pending: safeApplications.filter(app => app.status === 'pending').length,
     approved: safeApplications.filter(app => app.status === 'approved').length,
     rejected: safeApplications.filter(app => app.status === 'rejected').length
@@ -99,7 +99,7 @@ export default function BetaUsersTable({
   const handleStatusChange = async (applicationId: string, newStatus: string) => {
     try {
       setLoading((prev) => ({ ...prev, [applicationId]: true }));
-      setError(null);
+      setLocalError(null);
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const controller = new AbortController();
@@ -137,9 +137,9 @@ export default function BetaUsersTable({
     } catch (error) {
       console.error("Error changing status:", error);
       if (error instanceof Error && error.name === "AbortError") {
-        setError("Request timeout. Please try again.");
+        setLocalError("Request timeout. Please try again.");
       } else {
-        setError(error instanceof Error ? error.message : "Failed to update status");
+        setLocalError(error instanceof Error ? error.message : "Failed to update status");
       }
     } finally {
       setLoading((prev) => ({ ...prev, [applicationId]: false }));
@@ -220,10 +220,10 @@ export default function BetaUsersTable({
             onChange={(e) => setFilter(e.target.value as any)}
             className="bg-[#1F2937] text-white px-3 py-2 rounded"
           >
-            <option value="all">All Status ({counts.all})</option>
-            <option value="pending">Pending ({counts.pending})</option>
-            <option value="approved">Approved ({counts.approved})</option>
-            <option value="rejected">Rejected ({counts.rejected})</option>
+            <option value="all">All Status ({stats.total})</option>
+            <option value="pending">Pending ({stats.pending})</option>
+            <option value="approved">Approved ({stats.approved})</option>
+            <option value="rejected">Rejected ({stats.rejected})</option>
           </select>
           
           {/* Refresh button */}
@@ -240,9 +240,9 @@ export default function BetaUsersTable({
         <div className="flex justify-center items-center p-12">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#BF9ACA]"></div>
         </div>
-      ) : error ? (
+      ) : localError ? (
         <div className="p-6 text-center">
-          <p className="text-red-400">{error}</p>
+          <p className="text-red-400">{localError}</p>
           <button 
             onClick={refreshData}
             className="mt-4 px-4 py-2 bg-[#BF9ACA] text-white rounded hover:bg-[#A47BB5]"
@@ -374,13 +374,13 @@ export default function BetaUsersTable({
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-[#1F2937] p-4 rounded-lg">
           <h4 className="text-sm text-gray-400 mb-1">Pending Applications</h4>
-          <p className="text-2xl font-bold text-blue-400">{counts.pending}</p>
+          <p className="text-2xl font-bold text-blue-400">{stats.pending}</p>
         </div>
         <div className="bg-[#1F2937] p-4 rounded-lg">
           <h4 className="text-sm text-gray-400 mb-1">Approval Rate</h4>
           <p className="text-2xl font-bold text-green-400">
-            {counts.approved + counts.rejected > 0 ? 
-              `${Math.round((counts.approved / (counts.approved + counts.rejected)) * 100)}%` : 
+            {stats.approved + stats.rejected > 0 ? 
+              `${Math.round((stats.approved / (stats.approved + stats.rejected)) * 100)}%` : 
               "N/A"}
           </p>
         </div>

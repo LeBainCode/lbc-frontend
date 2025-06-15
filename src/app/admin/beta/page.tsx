@@ -63,18 +63,26 @@ export default function BetaAdminPage() {
       setIsLoading(true);
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       console.log("[BetaAdminPage] Fetching applicants from API:", `${apiUrl}/api/beta/applications?page=${currentPage}&limit=${ITEMS_PER_PAGE}&status=${currentFilter === "all" ? "" : currentFilter}`);
+      
       const response = await fetch(
         `${apiUrl}/api/beta/applications?page=${currentPage}&limit=${ITEMS_PER_PAGE}&status=${currentFilter === "all" ? "" : currentFilter}`,
         {
+          method: "GET",
           credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          }
         }
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch applicants");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch applicants");
       }
 
       const data: PaginatedResponse = await response.json();
+      console.log("[BetaAdminPage] Received data:", data);
       setApplicants(data.applicants || []);
       setTotalPages(data.totalPages || 1);
     } catch (error) {

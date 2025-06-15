@@ -66,6 +66,8 @@ export default function BetaUsersTable({
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [expandedReason, setExpandedReason] = useState<string | null>(null);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const [error: string | null, setError] = useState<string | null>(null);
 
   // Fix: Ensure applications is always an array
   const safeApplications: BetaApplication[] = Array.isArray(applications) ? applications : [];
@@ -94,12 +96,61 @@ export default function BetaUsersTable({
     rejected: safeApplications.filter(app => app.status === 'rejected').length
   };
 
+  const handleStatusChange = async (applicationId: string, newStatus: string) => {
+    try {
+      setLoading((prev) => ({ ...prev, [applicationId]: true }));
+      setError(null);
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const endpoint = newStatus === "approved" 
+        ? `/api/beta/approve/${applicationId}`
+        : `/api/beta/reject/${applicationId}`;
+
+      const response = await fetch(`${apiUrl}${endpoint}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.status === 401) {
+        throw new Error("Authentication required");
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to ${newStatus} application`);
+      }
+
+      // Refresh the data after successful status change
+      if (refreshData) {
+        refreshData();
+      }
+    } catch (error) {
+      console.error("Error changing status:", error);
+      if (error instanceof Error && error.name === "AbortError") {
+        setError("Request timeout. Please try again.");
+      } else {
+        setError(error instanceof Error ? error.message : "Failed to update status");
+      }
+    } finally {
+      setLoading((prev) => ({ ...prev, [applicationId]: false }));
+    }
+  };
+
   const handleApprove = async (application: BetaApplication) => {
     try {
       setProcessingIds(prev => new Set(prev).add(application._id));
       debugBeta("Approving beta application", { userId: application.userId, email: application.email });
-      await onApprove(application._id, application.userId, application.email);
-      refreshData();
+      await handleStatusChange(application._id, "approved");
     } catch (error) {
       debugBeta("Failed to approve beta application", error, true);
     } finally {
@@ -115,8 +166,7 @@ export default function BetaUsersTable({
     try {
       setProcessingIds(prev => new Set(prev).add(application._id));
       debugBeta("Rejecting beta application", { userId: application.userId, email: application.email });
-      await onReject(application._id, application.userId, application.email);
-      refreshData();
+      await handleStatusChange(application._id, "rejected");
     } catch (error) {
       debugBeta("Failed to reject beta application", error, true);
     } finally {

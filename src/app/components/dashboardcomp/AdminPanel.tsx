@@ -100,19 +100,23 @@ export default function AdminPanel() {
   };
 
   // Function to fetch all required data
-  const fetchData = async () => {
+  const fetchData = async (retryCount = 0) => {
     try {
       if (apiCallInProgress.current) return;
       apiCallInProgress.current = true;
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       // Fetch users
       const usersResponse = await fetch(`${apiUrl}/api/admin/users`, {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json"
         },
+        signal: controller.signal
       });
 
       // Fetch prospects
@@ -120,11 +124,21 @@ export default function AdminPanel() {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json"
         },
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
+      if (usersResponse.status === 401 || prospectsResponse.status === 401) {
+        debugAdmin("Authentication required", null, true);
+        router.push("/login");
+        return;
+      }
+
       if (!usersResponse.ok || !prospectsResponse.ok) {
-        throw new Error("Failed to fetch data");
+        throw new Error(`Failed to fetch data: ${usersResponse.status} ${prospectsResponse.status}`);
       }
 
       const usersData = await usersResponse.json();
@@ -132,15 +146,25 @@ export default function AdminPanel() {
 
       // Ensure usersData is an array
       const safeUsersData = Array.isArray(usersData) ? usersData : [];
-      const safeProspectsData = Array.isArray(prospectsData)
-        ? prospectsData
-        : [];
+      const safeProspectsData = Array.isArray(prospectsData) ? prospectsData : [];
 
       setRegularUsers(safeUsersData);
       setUserCount(safeUsersData.length);
       setProspects(safeProspectsData);
+      setError(null);
     } catch (error) {
       console.error("Error:", error);
+      if (error instanceof Error && error.name === "AbortError") {
+        debugAdmin("Request timeout", null, true);
+      }
+      
+      // Retry logic
+      if (retryCount < 3) {
+        debugAdmin(`Retrying fetch (attempt ${retryCount + 1})`, null, true);
+        setTimeout(() => fetchData(retryCount + 1), 1000 * (retryCount + 1));
+        return;
+      }
+
       setError(error instanceof Error ? error.message : "Failed to load data");
       // Set safe defaults on error
       setRegularUsers([]);

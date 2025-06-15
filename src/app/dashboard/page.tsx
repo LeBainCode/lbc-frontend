@@ -130,39 +130,51 @@ export default function Dashboard() {
       debug("Checking user authentication status");
 
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-session`,
           {
             method: "GET",
             credentials: "include",
+            signal: controller.signal,
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            }
           }
         );
 
-        if (response.ok) {
-          debug("Session verification succeeded");
+        clearTimeout(timeoutId);
 
-          if (!user) {
-            debug("User not in context, fetching user data");
-            await fetchUserData();
-          } else {
-            debug("User already in context", {
-              username: user.username,
-              role: user.role,
-            });
-          }
+        if (response.status === 401) {
+          debug("Session expired, redirecting to login", null, true);
+          router.push("/login");
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`Session verification failed: ${response.status}`);
+        }
+
+        debug("Session verification succeeded");
+
+        if (!user) {
+          debug("User not in context, fetching user data");
+          await fetchUserData();
         } else {
-          debug(
-            "Session verification failed, redirecting to home",
-            {
-              status: response.status,
-            },
-            true
-          );
-          router.push("/");
+          debug("User already in context", {
+            username: user.username,
+            role: user.role,
+          });
         }
       } catch (error) {
         debug("Error verifying session", error, true);
-        router.push("/");
+        if (error instanceof Error && error.name === "AbortError") {
+          debug("Request timeout", null, true);
+        }
+        router.push("/login");
       } finally {
         setIsLoading(false);
         isSessionChecking.current = false;

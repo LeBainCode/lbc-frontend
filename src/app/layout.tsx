@@ -5,6 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { DebugInitializer } from "./components/DebugInitializer";
 import { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -50,6 +51,17 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <DebugInitializer />
           {children}
           <Analytics />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: "#1F2937",
+                color: "#fff",
+                border: "1px solid #374151",
+              },
+            }}
+          />
         </AuthProvider>
       </body>
     </html>

@@ -389,7 +389,9 @@ export default function AdminPanel() {
             <h3 className="text-xl font-semibold text-white mb-4">
               User Statistics
             </h3>
-            <UserCount count={userCount} isLoading={isLoading} error={error} />
+            <div className="space-y-4">
+              <UserCount count={userCount} isLoading={isLoading} error={error} />
+            </div>
           </div>
           <AnalyticsSection />
         </div>
@@ -585,6 +587,9 @@ export default function AdminPanel() {
               onReachedOutChange={handleReachedOutChange}
               onCommentChange={handleCommentChange}
               onFilterChange={setSelectedType}
+              setSelectedType={setSelectedType}
+              showNoEmail={showNoEmail}
+              setShowNoEmail={setShowNoEmail}
             />
           </div>
         </div>

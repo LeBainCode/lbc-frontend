@@ -23,6 +23,7 @@ interface User {
   role: string;
   email?: string;
   progress?: Progress;
+  profilePic?: string;
 }
 
 interface UserStats {
@@ -215,7 +216,11 @@ export default function Dashboard() {
 
       <main className="min-h-screen bg-[#0D1117] overflow-x-hidden flex flex-col items-center">
         <div className="mb-10 pt-8">
-          <Profil username={user.username} role={user.role} />
+          <Profil
+            username={user.username}
+            role={user.role}
+            profilePic={user.profilePic}
+          />
         </div>
         <div className="mb-10 pt-8">
           <h2 className="text-white text-2xl font-medium mb-6">Statistiques</h2>
@@ -230,7 +235,10 @@ export default function Dashboard() {
           {user.role === "admin" && <AdminPanel />}
         </div>
 
-        <AlertPopup hasEmail={Boolean(user.email)} />
+        <AlertPopup
+          hasEmail={!!user.email}
+          isAdmin={user.role === "admin"}
+        />
       </main>
       <Footer />
     </>
